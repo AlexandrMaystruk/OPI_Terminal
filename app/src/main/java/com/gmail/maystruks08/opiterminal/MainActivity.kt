@@ -10,15 +10,15 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.math.BigDecimal
 import java.util.*
 
-private const val CVV_PORT_IN = 20007
-private const val CVV_PORT_OUT = 20002
+private const val CVV_PORT_SEND = 20002
+private const val CVV_PORT_RECEIVE = 20007
 
 private const val INGENIKO_PORT_IN = 5577
 private const val INGENIKO_PORT_OUT = 5578
 
 private const val TIMEOUT = 10000
 
-private const val TERMINAL_IP = "192.168.0.114"
+private const val TERMINAL_IP = "192.168.0.125"
 
 class MainActivity : AppCompatActivity() {
 
@@ -28,14 +28,19 @@ class MainActivity : AppCompatActivity() {
 
         val terminal = Terminal.Builder()
             .ipAddress(TERMINAL_IP)
-            .inputPort(INGENIKO_PORT_IN)
-            .outputPort(INGENIKO_PORT_OUT)
+            .inputPort(CVV_PORT_SEND)
+            .outputPort(CVV_PORT_RECEIVE)
             .timeout(TIMEOUT)
             .build()
 
         btnLogin.setOnClickListener {
             Thread(Runnable {
-                terminal.login()
+                terminal.login(
+                    workstationID = "Elo C1242435235",
+                    requestID = UUID.randomUUID().toString(),
+                    applicationSender = "SmartCheckout"
+                )
+
                 this.runOnUiThread {
                     Toast.makeText(this, "Login finished", Toast.LENGTH_LONG).show()
                 }
