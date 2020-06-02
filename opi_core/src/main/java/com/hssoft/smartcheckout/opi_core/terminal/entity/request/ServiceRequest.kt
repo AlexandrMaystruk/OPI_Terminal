@@ -1,6 +1,6 @@
-package com.gmail.maystruks08.opiterminal.entity.request
+package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
-import com.gmail.maystruks08.opiterminal.entity.BaseXMLEntity
+import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList

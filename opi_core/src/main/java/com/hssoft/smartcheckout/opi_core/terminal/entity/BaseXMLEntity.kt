@@ -1,4 +1,4 @@
-package com.gmail.maystruks08.opiterminal.entity
+package com.hssoft.smartcheckout.opi_core.terminal.entity
 
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format

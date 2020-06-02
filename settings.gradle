@@ -1,2 +1,3 @@
 rootProject.name='OPI Terminal'
 include ':app'
+include ':opi_core'

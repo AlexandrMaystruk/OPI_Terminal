@@ -1,9 +1,9 @@
 package com.gmail.maystruks08.opiterminal
 
-import com.gmail.maystruks08.opiterminal.entity.SimpleText
-import com.gmail.maystruks08.opiterminal.entity.request.CardRequest
-import com.gmail.maystruks08.opiterminal.entity.request.DeviceRequest
-import com.gmail.maystruks08.opiterminal.terminal.toServerUTCFormat
+import com.gmail.maystruks08.opi_terminal_api.connection.entity.SimpleText
+import com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest
+import com.gmail.maystruks08.opi_terminal_api.connection.entity.request.DeviceRequest
+import com.gmail.maystruks08.opi_terminal_api.connection.terminal.toServerUTCFormat
 import org.junit.Test
 import java.util.*
 
@@ -39,19 +39,23 @@ class ExampleUnitTest {
 //
 //        println(deviceRequest)
 
-        val cardServiceRequest = CardRequest(
+        val cardServiceRequest = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest(
             elmeTunnelCallback = true,
             requestID = "3c0c5e789e534754be2736fb266e5bd0",
             workstationID = "1CEEC90780FB",
             requestType = "CardPayment",
-            posData = CardRequest.PosData(
+            posData = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.PosData(
                 posTimeStamp = Date().toServerUTCFormat(),
                 usePreselectedCard = false
             ),
-            privateData = CardRequest.PrivateData(lastReceiptNumber = "3"),
-            totalAmount = CardRequest.TotalAmount(
+            privateData = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.PrivateData(
+                lastReceiptNumber = "3"
+            ),
+            totalAmount = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.TotalAmount(
                 currency = "EUR",
-                paymentAmount = SimpleText("5.00")
+                paymentAmount = com.gmail.maystruks08.opi_terminal_api.connection.entity.SimpleText(
+                    "5.00"
+                )
             )
         ).serializeToXMLString() ?: ""
 
