@@ -1,10 +1,8 @@
 package com.gmail.maystruks08.opiterminal.entity.request
 
 import com.gmail.maystruks08.opiterminal.entity.BaseXMLEntity
-import com.gmail.maystruks08.opiterminal.entity.IGNORE_TAG
-import org.simpleframework.xml.Attribute
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Root
+import com.gmail.maystruks08.opiterminal.entity.SimpleText
+import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
 import java.io.Reader
@@ -13,11 +11,11 @@ import java.io.StringReader
 @Root(name = "DeviceRequest")
 data class DeviceRequest(
 
-    @field: Attribute(name = "xmlns")
-    var xmlns: String = "http://www.nrf-arts.org/IXRetail/namespace",
+    @field:Namespace(reference = "http://www.nrf-arts.org/IXRetail/namespace")
+    var attr: String = "",
 
-    @field: Attribute(name = "xmlns:xsi")
-    var xsi: String = "http://www.w3.org/2001/XMLSchema-instance",
+    @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
+    var xsi: String = "",
 
     @field: Attribute(name = "RequestType")
     var requestType: String? = null,
@@ -133,56 +131,11 @@ data class DeviceRequest(
     @Root(name = "TextLine")
     data class TextLine(
 
-        @field: Element(name = IGNORE_TAG, required = false)
-        var message: String? = null,
-
-        @field: Element(name = "Row", required = false)
-        var row: String? = null,
-
-        @field: Element(name = "Column", required = false)
-        var column: String? = null,
-
-        @field: Element(name = "CharSet", required = false)
-        var charSet: String? = null,
-
-        @field: Element(name = "Erase", required = false)
-        var erase: String? = null,
-
-        @field: Element(name = "Echo", required = false)
-        var echo: String? = null,
-
-        @field: Element(name = "Cursor", required = false)
-        var cursor: String? = null,
-
         @field: Attribute(name = "TimeOut", required = false)
         var timeOut: String? = null,
 
-        @field: Element(name = "Color", required = false)
-        var color: String? = null,
-
-        @field: Element(name = "Alignment", required = false)
-        var alignment: String? = null,
-
-        @field: Element(name = "Height", required = false)
-        var height: String? = null,
-
-        @field: Element(name = "Width", required = false)
-        var width: String? = null,
-
-        @field: Element(name = "CharStyle1", required = false)
-        var charStyle1: String? = null,
-
-        @field: Element(name = "CharStyle2", required = false)
-        var charStyle2: String? = null,
-
-        @field: Element(name = "CharStyle3", required = false)
-        var charStyle3: String? = null,
-
-        @field: Element(name = "PaperCut", required = false)
-        var paperCut: String? = null,
-
-        @field: Element(name = "MenuItem", required = false)
-        var menuItem: String? = null
+        @field: Text(required = false)
+        var message: SimpleText? = null
     )
 
     @Root(name = "Buzzer")

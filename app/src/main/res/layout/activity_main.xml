@@ -22,10 +22,22 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="30dp"
         android:text="Login"
-        app:layout_constraintBottom_toBottomOf="@+id/btnTransaction"
-        app:layout_constraintEnd_toStartOf="@+id/btnTransaction"
+        app:layout_constraintBottom_toBottomOf="@+id/btnStatus"
+        app:layout_constraintEnd_toStartOf="@+id/btnStatus"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnTransaction" />
+        app:layout_constraintTop_toTopOf="@+id/btnStatus" />
+
+
+    <Button
+        android:id="@+id/btnStatus"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:text="Status"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnTransaction"
+        app:layout_constraintStart_toEndOf="@+id/btnLogin"
+        app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <Button
         android:id="@+id/btnTransaction"
@@ -35,7 +47,7 @@
         android:text="Transaction"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnDisconnect"
-        app:layout_constraintStart_toEndOf="@+id/btnLogin"
+        app:layout_constraintStart_toEndOf="@+id/btnStatus"
         app:layout_constraintTop_toBottomOf="@+id/textView" />
 
     <Button

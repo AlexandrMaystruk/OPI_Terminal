@@ -30,10 +30,7 @@ data class DeviceResponse(
     var xsi: String = "http://www.w3.org/2001/XMLSchema-instance",
 
     @field: Element(name = "Output")
-    var output: Output = Output(
-        "",
-        ""
-    ),
+    var output: Output = Output("", ""),
 
     @field: Element(name = "Input", required = false)
     var input: Input? = null,

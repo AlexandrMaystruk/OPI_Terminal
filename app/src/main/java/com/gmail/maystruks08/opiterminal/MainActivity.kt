@@ -12,13 +12,13 @@ import java.util.*
 
 private const val CVV_PORT_SEND = 20002
 private const val CVV_PORT_RECEIVE = 20007
-
-private const val INGENIKO_PORT_IN = 5577
-private const val INGENIKO_PORT_OUT = 5578
-
 private const val TIMEOUT = 10000
-
 private const val TERMINAL_IP = "192.168.0.125"
+
+private const val WORK_STATION_ID = "Elo C1242435235"
+private const val APPLICATION_SENDER = "SmartCheckout"
+private const val CURRENCY = "EUR"
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,18 +31,24 @@ class MainActivity : AppCompatActivity() {
             .inputPort(CVV_PORT_SEND)
             .outputPort(CVV_PORT_RECEIVE)
             .timeout(TIMEOUT)
+            .applicationSender(APPLICATION_SENDER)
+            .workstationID(WORK_STATION_ID)
             .build()
 
         btnLogin.setOnClickListener {
             Thread(Runnable {
-                terminal.login(
-                    workstationID = "Elo C1242435235",
-                    requestID = UUID.randomUUID().toString(),
-                    applicationSender = "SmartCheckout"
-                )
-
+                terminal.initialization()
                 this.runOnUiThread {
                     Toast.makeText(this, "Login finished", Toast.LENGTH_LONG).show()
+                }
+            }).start()
+        }
+
+        btnStatus.setOnClickListener {
+            Thread(Runnable {
+                terminal.status()
+                this.runOnUiThread {
+                    Toast.makeText(this, "Status finished", Toast.LENGTH_LONG).show()
                 }
             }).start()
         }
@@ -51,7 +57,7 @@ class MainActivity : AppCompatActivity() {
             Thread(Runnable {
                 val transactionData = Payment.Builder()
                     .total(BigDecimal.TEN)
-                    .currency("EUR")
+                    .currency(CURRENCY)
                     .transactionId(UUID.randomUUID().toString())
                     .type(PaymentType.SALE)
                     .build()

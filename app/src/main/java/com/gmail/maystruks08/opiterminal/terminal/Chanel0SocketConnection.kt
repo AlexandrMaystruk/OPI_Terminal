@@ -68,21 +68,14 @@ class ClientSocketConnection {
     fun sendData(message: String): Boolean {
         val beginTicks: Long = System.currentTimeMillis()
         if (sendDataSocket != null && sendDataSocket?.isConnected == true) {
-            if (sendDataSocket != null) {
-                operationTime = System.currentTimeMillis() - beginTicks
-                Log.d(tag, "Send data socket is null")
-                Log.d(tag, "Method sendData() finished. Operation time $operationTime ms")
-                return false
-            }
-
             bufferOut = DataOutputStream(sendDataSocket!!.getOutputStream())
             if (bufferOut != null) {
                 val out = bufferOut!!
                 return try {
-                    Log.d(tag, "Send data $message")
                     synchronized(out) {
                         out.write(ByteBuffer.allocate(4).putInt(message.toByteArray().size).array())
                         out.write(message.toByteArray())
+                        Log.d(tag, "Send data $message")
                     }
                     operationTime = System.currentTimeMillis() - beginTicks
                     Log.d(tag, "Method sendData() finished. Operation time $operationTime ms")
@@ -99,6 +92,8 @@ class ClientSocketConnection {
             return false
         }
         operationTime = System.currentTimeMillis() - beginTicks
+        operationTime = System.currentTimeMillis() - beginTicks
+        Log.d(tag, "Send data socket is null or closed")
         Log.d(tag, "Method sendData() finished. Operation time $operationTime ms")
         return false
     }
@@ -130,6 +125,7 @@ class ClientSocketConnection {
                 }
             }
         }
+        Log.d(tag, "Read data: ${String(result)}")
         return String(result)
     }
 
@@ -171,7 +167,7 @@ class ClientSocketConnection {
     }
 
 
-    private fun disconnect() {
+    fun disconnect() {
         if (!this.disconnecting) {
             disconnecting = true
             Log.d(tag, "Trying to disconnect")

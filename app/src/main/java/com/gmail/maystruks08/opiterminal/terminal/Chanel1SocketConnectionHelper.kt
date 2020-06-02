@@ -61,10 +61,7 @@ class ServerSocketConnection {
             connectionInformation.channel1OutputStream.write(message)
             connectionInformation.channel1OutputStream.flush()
         } else {
-            Log.d(
-                tag,
-                "Failed to send message to terminal using channel 1: no OutputStream available"
-            )
+            Log.d(tag, "Failed to send message to terminal using channel 1: no OutputStream available")
         }
     }
 
