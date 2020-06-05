@@ -1,7 +1,6 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import com.hssoft.smartcheckout.opi_core.terminal.entity.SimpleText
 import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
@@ -66,7 +65,7 @@ data class CardRequest(
     data class TotalAmount(
 
         @field: Element(name = "SimpleText", required = false)
-        var paymentAmount: SimpleText? = null,
+        var paymentAmount: String? = null,
 
         @field: Element(name = "CashBackAmount", required = false)
         var cashBackAmount: String? = null,

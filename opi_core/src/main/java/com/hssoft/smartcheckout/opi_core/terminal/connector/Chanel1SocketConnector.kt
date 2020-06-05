@@ -4,9 +4,7 @@ import java.io.DataInputStream
 import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.net.ServerSocket
-import java.net.Socket
-import java.net.SocketException
+import java.net.*
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.logging.Level
@@ -22,8 +20,7 @@ class Chanel1SocketConnector {
     private var logger = Logger.getLogger(tag)
 
 
-    private val connectionQueue: Queue<ConnectionInformation?> =
-        ArrayBlockingQueue<ConnectionInformation?>(10)
+    private val connectionQueue: Queue<ConnectionInformation?> = ArrayBlockingQueue<ConnectionInformation?>(10)
 
     fun receiveData(receivePort: Int?, onDataReceived: (String) -> Unit) {
         val beginTicks: Long = System.currentTimeMillis()
@@ -36,21 +33,28 @@ class Chanel1SocketConnector {
         }
         if (closeConnection()) {
             try {
-                serverSocket = ServerSocket(receivePort)
-                logger.log(Level.INFO,"Waiting for incoming connection on ${serverSocket?.inetAddress}")
-                while (true) {
+                serverSocket = ServerSocket(receivePort, 0, InetAddress.getByName(getLocalIpAddress()))
+                logger.log(Level.INFO,"Waiting for incoming connection on ${getLocalIpAddress()} : $receivePort")
+                if(serverSocket?.isClosed == false){
+                    while (true) {
+                        clientSocket = serverSocket?.accept()
 
-                    clientSocket = serverSocket?.accept()
-
-                    if (clientSocket != null) {
-                        DataInputStream(clientSocket!!.getInputStream()).use {
-                            while (clientSocket!!.isConnected) {
-                                val serverMessage = it.readUTF()
-                                onDataReceived(serverMessage)
+                        if (clientSocket != null && clientSocket?.isConnected == true) {
+                            val inputStream = clientSocket!!.getInputStream()
+                            val outputStream = clientSocket!!.getOutputStream()
+                            connectionQueue.add(ConnectionInformation(inputStream, outputStream))
+                            DataInputStream(inputStream).use {
+                                while (clientSocket!!.isConnected) {
+                                    val serverMessage = it.readUTF()
+                                    onDataReceived(serverMessage)
+                                }
                             }
                         }
                     }
+                } else {
+                    logger.log(Level.INFO,"Server socket is closed!!!")
                 }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -100,4 +104,23 @@ class Chanel1SocketConnector {
         val channel1InputStream: InputStream,
         val channel1OutputStream: OutputStream
     )
+
+    private fun getLocalIpAddress(): String? {
+        try {
+            val en: Enumeration<NetworkInterface> = NetworkInterface.getNetworkInterfaces()
+            while (en.hasMoreElements()) {
+                val intf: NetworkInterface = en.nextElement()
+                val enumIpAddr: Enumeration<InetAddress> = intf.inetAddresses
+                while (enumIpAddr.hasMoreElements()) {
+                    val inetAddress = enumIpAddr.nextElement()
+                    if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
+                        return inetAddress.hostAddress
+                    }
+                }
+            }
+        } catch (e: SocketException) {
+            e.printStackTrace()
+        }
+        return null
+    }
 }

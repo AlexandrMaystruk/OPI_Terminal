@@ -1,10 +1,7 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import com.hssoft.smartcheckout.opi_core.terminal.entity.SimpleText
 import org.simpleframework.xml.*
-import org.simpleframework.xml.core.Persister
-import org.simpleframework.xml.stream.Format
 import java.io.Reader
 import java.io.StringReader
 
@@ -12,10 +9,10 @@ import java.io.StringReader
 data class DeviceRequest(
 
     @field:Namespace(reference = "http://www.nrf-arts.org/IXRetail/namespace")
-    var attr: String = "",
+    var attr: String = "http://www.nrf-arts.org/IXRetail/namespace",
 
     @field:Namespace(reference = "http://www.w3.org/2001/XMLSchema-instance")
-    var xsi: String = "",
+    var xsi: String = "http://www.w3.org/2001/XMLSchema-instance",
 
     @field: Attribute(name = "RequestType")
     var requestType: String? = null,
@@ -52,8 +49,6 @@ data class DeviceRequest(
 
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
-        val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
-        val serializer = Persister(format)
         try {
             val deviceRequest = serializer.read(this::class.java, reader, false)
             this.requestType = deviceRequest.requestType
@@ -131,11 +126,9 @@ data class DeviceRequest(
     @Root(name = "TextLine")
     data class TextLine(
 
-        @field: Attribute(name = "TimeOut", required = false)
-        var timeOut: String? = null,
+        @field: Text
+        var message: String? = null
 
-        @field: Text(required = false)
-        var message: SimpleText? = null
     )
 
     @Root(name = "Buzzer")

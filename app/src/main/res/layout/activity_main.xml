@@ -6,15 +6,26 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/textView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="OPI Terminal test"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/btnCancelTransaction"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="OPI Terminal test"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </ScrollView>
+
+
 
     <Button
         android:id="@+id/btnLogin"
@@ -37,7 +48,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnTransaction"
         app:layout_constraintStart_toEndOf="@+id/btnLogin"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        />
 
     <Button
         android:id="@+id/btnTransaction"
@@ -48,7 +59,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnCancelTransaction"
         app:layout_constraintStart_toEndOf="@+id/btnStatus"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+       />
 
     <Button
         android:id="@+id/btnCancelTransaction"
@@ -58,8 +69,7 @@
         android:text="Cancel Transaction"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnDisconnect"
-        app:layout_constraintStart_toEndOf="@+id/btnTransaction"
-        app:layout_constraintTop_toBottomOf="@+id/textView" />
+        app:layout_constraintStart_toEndOf="@+id/btnTransaction" />
 
     <Button
         android:id="@+id/btnDisconnect"
@@ -70,6 +80,6 @@
         app:layout_constraintBottom_toBottomOf="@+id/btnCancelTransaction"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/btnCancelTransaction"
-        app:layout_constraintTop_toTopOf="@+id/btnCancelTransaction" />
+ />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

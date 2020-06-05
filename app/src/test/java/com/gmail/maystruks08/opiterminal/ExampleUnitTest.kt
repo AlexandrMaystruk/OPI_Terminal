@@ -1,65 +1,31 @@
 package com.gmail.maystruks08.opiterminal
 
-import com.gmail.maystruks08.opi_terminal_api.connection.entity.SimpleText
-import com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest
-import com.gmail.maystruks08.opi_terminal_api.connection.entity.request.DeviceRequest
-import com.gmail.maystruks08.opi_terminal_api.connection.terminal.toServerUTCFormat
-import org.junit.Test
-import java.util.*
 
+import com.hssoft.smartcheckout.opi_core.terminal.entity.SimpleText
+import com.hssoft.smartcheckout.opi_core.terminal.entity.request.DeviceRequest
+import org.junit.Test
 
 class ExampleUnitTest {
     @Test
     fun addition_isCorrect() {
 
-
-//        val serviceRequest = ServiceRequest(
-//            requestType = "Initialisation",
-//            workstationID = "workstationID",
-//            requestID = "requestID",
-//            elmeTunnelCallback = true,
-//            applicationSender = "applicationSender",
-//            posData = ServiceRequest.PosData(posTimeStamp = Date())
-//        ).serializeToXMLString() ?: ""
-//
-//        println(serviceRequest)
-
-//        val deviceRequest = DeviceRequest(
-//            requestID = "0",
-//            requestType = "Output",
-//            applicationSender = "applicationSender",
-//            output = DeviceRequest.Output(
-//                outDeviceTarget = "CashierDisplay",
-//                textLine = DeviceRequest.TextLine(
-//                    timeOut = "120",
-//                    message = SimpleText("Hi Babe!!!!!!!! ..")
-//                )
-//            )
-//        ).serializeToXMLString() ?: ""
-//
-//        println(deviceRequest)
-
-        val cardServiceRequest = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest(
-            elmeTunnelCallback = true,
-            requestID = "3c0c5e789e534754be2736fb266e5bd0",
-            workstationID = "1CEEC90780FB",
-            requestType = "CardPayment",
-            posData = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.PosData(
-                posTimeStamp = Date().toServerUTCFormat(),
-                usePreselectedCard = false
-            ),
-            privateData = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.PrivateData(
-                lastReceiptNumber = "3"
-            ),
-            totalAmount = com.gmail.maystruks08.opi_terminal_api.connection.entity.request.CardRequest.TotalAmount(
-                currency = "EUR",
-                paymentAmount = com.gmail.maystruks08.opi_terminal_api.connection.entity.SimpleText(
-                    "5.00"
+        val deviceRequest = DeviceRequest(
+            requestID = "1",
+            requestType = RequestType.Output.name,
+            applicationSender = "applicationSender",
+            output = DeviceRequest.Output(
+                outDeviceTarget = "CashierDisplay",
+                textLine = DeviceRequest.TextLine(
+                    timeOut = TEXT_OUTPUT_TIMEOUT,
+                    message = SimpleText("Terminal is alive!!!!!!!! ..")
                 )
             )
-        ).serializeToXMLString() ?: ""
+        )
 
-        println(cardServiceRequest)
+        println(deviceRequest)
 
+        val response1 = DeviceRequest().apply { deserializeFromXMLString( deviceRequest.serializeToXMLString())}
+
+        println(response1)
     }
 }
