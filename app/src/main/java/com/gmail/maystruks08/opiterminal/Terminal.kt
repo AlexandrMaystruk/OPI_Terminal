@@ -3,21 +3,20 @@ package com.gmail.maystruks08.opiterminal
 import android.os.Handler
 import android.os.Message
 import com.hssoft.smartcheckout.opi_core.terminal.connector.Chanel1SocketConnector
-import com.hssoft.smartcheckout.opi_core.terminal.connector.ClientSocketConnection
+import com.hssoft.smartcheckout.opi_core.terminal.connector.Chanel0SocketConnector
 import com.hssoft.smartcheckout.opi_core.terminal.entity.Payment
 import com.hssoft.smartcheckout.opi_core.terminal.entity.RequestType
 import com.hssoft.smartcheckout.opi_core.terminal.entity.request.CardRequest
-import com.hssoft.smartcheckout.opi_core.terminal.entity.request.DeviceRequest
 import com.hssoft.smartcheckout.opi_core.terminal.entity.request.ServiceRequest
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.logging.Level
+import java.util.logging.Logger
 
 const val SERVER_UTC_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 const val TEXT_OUTPUT_TIMEOUT = "120"
 
-fun Date.toServerUTCFormat(): String =
-    SimpleDateFormat(SERVER_UTC_FORMAT, Locale.getDefault()).format(this)
-
+fun Date.toServerUTCFormat(): String = SimpleDateFormat(SERVER_UTC_FORMAT, Locale.getDefault()).format(this)
 
 class Terminal(
     private val ipAddress: String?,
@@ -26,9 +25,12 @@ class Terminal(
     private val timeout: Int = 4000,
     private val applicationSender: String?,
     private val workstationID: String?,
-    private val clientChanel: ClientSocketConnection,
+    private val clientChanel: Chanel0SocketConnector,
     private val serverChanel: Chanel1SocketConnector
 ) {
+    private val tag = "Terminal"
+
+    private var logger = Logger.getLogger(tag)
 
     lateinit var handler: Handler //TODO remove
 
@@ -58,70 +60,39 @@ class Terminal(
                 timeout,
                 applicationSender,
                 workstationID,
-                ClientSocketConnection(),
+                Chanel0SocketConnector(),
                 Chanel1SocketConnector()
             )
         }
     }
 
     fun initialization() {
-
-        Thread(Runnable {
+        Thread {
             clientChanel.openSendConnection(ipAddress, inputPort, timeout)
-
-            //THIS SHIT NOT WORKS, I DON'T KNOW WHY =(
-//            Thread(Runnable {
-//                serverChanel.receiveData(outputPort) {
-//                    handler.sendMessage(
-//                        Message().apply {
-//                            what = 10
-//                            data.putString("10", "Message from device ->>>>>>>>>>>>>>>>>\n$it")
-//                        })
-//
-//                }
-//            }).start()
-
-            val serviceRequest = ServiceRequest(
-                requestType = RequestType.Initialisation.name,
+            val serviceRequest1 = ServiceRequest(
+                requestType = RequestType.Login.name,
                 workstationID = workstationID,
                 requestID = "0",
-                elmeTunnelCallback = true,
                 applicationSender = applicationSender,
                 posData = ServiceRequest.PosData(
                     posTimeStamp = Date()
                 )
             )
-            clientChanel.sendData(serviceRequest.serializeToXMLString())
-            val response0 =
-                ServiceRequest().apply { deserializeFromXMLString(clientChanel.read() ?: "") }
-            handler.sendMessage(
-                Message().apply {
-                    what = 0
-                    data.putString("0", response0.toString())
-                })
+            clientChanel.sendData(serviceRequest1.serializeToXMLString())
+            logger.log(Level.INFO, serviceRequest1.serializeToXMLString())
 
+            val response0 = clientChanel.read()
 
-            val deviceRequest = DeviceRequest(
-                requestID = "1",
-                requestType = RequestType.Output.name,
-                applicationSender = applicationSender,
-                output = DeviceRequest.Output(
-                    outDeviceTarget = "CashierDisplay",
-                    textLine = DeviceRequest.TextLine(message = "Terminal is alive!!!!!!!! ..")
-                )
-            )
-            clientChanel.sendData(deviceRequest.serializeToXMLString())
-            val response1 =
-                DeviceRequest().apply { deserializeFromXMLString(clientChanel.read() ?: "") }
-            handler.sendMessage(Message().apply {
-                what = 1
-                data.putString("1", response1.toString())
-            })
+            sendLogToUI("0", response0)
 
-        }).start()
+            clientChanel.disconnect()
+        }.start()
     }
 
     fun status() {
+
+        clientChanel.openSendConnection(ipAddress, inputPort, timeout)
+
         val serviceRequest = ServiceRequest(
             requestType = RequestType.Login.name,
             applicationSender = applicationSender,
@@ -131,18 +102,18 @@ class Terminal(
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         clientChanel.sendData(serviceRequest.serializeToXMLString())
+
         val response2 = clientChanel.read()
-        handler.sendMessage(
-            Message().apply {
-                what = 2
-                data.putString("2", response2)
-            })
+
+        sendLogToUI("2", response2)
+
+        clientChanel.disconnect()
     }
 
     fun transaction(paymentData: Payment) {
         clientChanel.openSendConnection(ipAddress, inputPort, timeout)
+
         val cardServiceRequest = CardRequest(
-            elmeTunnelCallback = true,
             requestID = paymentData.transactionId,
             workstationID = workstationID,
             requestType = RequestType.CardPayment.name,
@@ -158,18 +129,27 @@ class Terminal(
                 paymentAmount = paymentData.total.toString()
             )
         )
-        clientChanel.sendData(cardServiceRequest.serializeToXMLString())
-        val response3 = clientChanel.read()
-        handler.sendMessage(
-            Message().apply {
-                what = 3
-                data.putString("3", response3)
-            })
 
-        status()
+        val cardRequest = cardServiceRequest.serializeToXMLString()
+
+        clientChanel.sendData(cardRequest)
+
+        val response3 = clientChanel.read()
+
+        sendLogToUI("3", response3)
+
+        clientChanel.disconnect()
+
+        //THIS SHIT NOT WORKS, I DON'T KNOW WHY =(
+        Thread {
+            serverChanel.receiveData(outputPort) {
+                sendLogToUI("10", "Message from device ->>>>>>>>>>>>>>>>>\n$it")
+            }
+        }.start()
     }
 
     fun cancelTransaction(paymentData: Payment) {
+        clientChanel.openSendConnection(ipAddress, inputPort, timeout)
 
         val cardServiceRequest = CardRequest(
             elmeTunnelCallback = true,
@@ -190,35 +170,12 @@ class Terminal(
         )
         clientChanel.sendData(cardServiceRequest.serializeToXMLString())
         val response5 = clientChanel.read()
-
-        //just for log
-        handler.sendMessage(
-            Message().apply {
-                what = 5
-                data.putString("5", response5)
-            })
+        sendLogToUI("5", response5)
+        clientChanel.disconnect()
     }
 
     fun logout() {
-        val deviceRequest = DeviceRequest(
-            requestID = "0",
-            requestType = RequestType.Logoff.name,
-            workstationID = workstationID,
-            applicationSender = applicationSender,
-            output = DeviceRequest.Output(
-                outDeviceTarget = "CashierDisplay",
-                textLine = DeviceRequest.TextLine(message = "Log out")
-            )
-        )
-        clientChanel.sendData(deviceRequest.serializeToXMLString())
-        val response7 = clientChanel.read()
-
-        //just for log
-        handler.sendMessage(
-            Message().apply {
-                what = 7
-                data.putString("7", response7)
-            })
+        clientChanel.openSendConnection(ipAddress, inputPort, timeout)
 
         val serviceRequest = ServiceRequest(
             requestType = RequestType.Logoff.name,
@@ -231,11 +188,16 @@ class Terminal(
         clientChanel.sendData(serviceRequest.serializeToXMLString())
         val response8 = clientChanel.read()
 
-        //just for log
+        sendLogToUI("8", response8)
+        clientChanel.disconnect()
+    }
+
+    //just for log
+    private fun sendLogToUI(code: String, message: String?) {
         handler.sendMessage(
             Message().apply {
-                what = 8
-                data.putString("8", response8)
+                what = code.toInt()
+                data.putString(code, message)
             })
     }
 }

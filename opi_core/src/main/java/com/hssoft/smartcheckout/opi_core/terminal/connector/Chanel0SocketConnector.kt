@@ -2,7 +2,6 @@ package com.hssoft.smartcheckout.opi_core.terminal.connector
 
 import java.util.logging.Level
 import java.util.logging.Logger
-import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -11,23 +10,19 @@ import java.net.SocketException
 import java.nio.ByteBuffer
 
 
-class ClientSocketConnection {
+class Chanel0SocketConnector {
 
     private val tag = "ClientSocketConnection"
 
     private var sendDataSocket: Socket? = null
     private var operationTime = 0L
     private var bufferOut: DataOutputStream? = null
-    private var bufferIn: DataInputStream? = null
     private var disconnecting = false
     private var logger = Logger.getLogger(tag)
 
     fun openSendConnection(ipAddress: String?, port: Int?, timeout: Int = 4000): Socket? {
         val beginTicks: Long = System.currentTimeMillis()
         logger.log(Level.INFO, "Open connection started")
-
-        closeConnection()
-
         // Check IP and Port not empty
         if (ipAddress.isNullOrEmpty() || port == null || port == 0) {
             operationTime = System.currentTimeMillis() - beginTicks
@@ -129,44 +124,6 @@ class ClientSocketConnection {
         logger.log(Level.INFO,"Read data: ${String(result)}")
         return String(result)
     }
-
-    private fun closeConnection(): Boolean {
-        logger.log(Level.INFO,"Close connection started")
-        val beginTicks: Long = System.currentTimeMillis()
-        // Check that socket not exists
-        if (sendDataSocket == null) {
-            operationTime = System.currentTimeMillis() - beginTicks
-            logger.log(Level.INFO,"Socket not exist")
-            logger.log(Level.INFO,"Method closeConnection() finished. Operation time $operationTime ms")
-            return false
-        }
-        return try {
-            if (this.sendDataSocket != null && this.sendDataSocket?.isClosed == false) {
-                this.sendDataSocket?.close()
-            }
-            bufferOut?.flush()
-            bufferOut?.close()
-            bufferIn?.close()
-            bufferOut = null
-            bufferIn = null
-
-            operationTime = System.currentTimeMillis() - beginTicks
-            logger.log(Level.INFO,"Close socket successful")
-            logger.log(Level.INFO,"Method closeConnection() finished. Operation time $operationTime ms")
-            true
-        } catch (socketException: SocketException) {
-            operationTime = System.currentTimeMillis() - beginTicks
-            logger.log(Level.INFO,"Socket exception while disconnecting $socketException")
-            logger.log(Level.INFO,"Method closeConnection() finished. Operation time $operationTime ms")
-            false
-        } catch (e: Exception) {
-            operationTime = System.currentTimeMillis() - beginTicks
-            logger.log(Level.INFO,"Unknown exception while disconnecting $e")
-            logger.log(Level.INFO,"Method closeConnection() finished. Operation time $operationTime ms")
-            false
-        }
-    }
-
 
     fun disconnect() {
         if (!this.disconnecting) {

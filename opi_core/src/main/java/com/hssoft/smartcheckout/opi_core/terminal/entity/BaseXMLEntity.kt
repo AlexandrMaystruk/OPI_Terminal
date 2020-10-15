@@ -18,7 +18,7 @@ val Exception.stackTraceString: String
 abstract class BaseXMLEntity {
 
     private val writer: Writer = StringWriter()
-    private val format = Format("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>")
+    private val format = Format("<?xml version=\"1.0\" encoding=\"utf-8\" ?>")
     val serializer = Persister(format)
 
     open fun serializeToXMLString(): String {
@@ -32,6 +32,7 @@ abstract class BaseXMLEntity {
                 .replace("&gt;".toRegex(), ">")
                 .replace("<SimpleText>".toRegex(), "")
                 .replace("</SimpleText>".toRegex(), "")
+                .replace("\" ?", "\"?")
             result
                 .replace("> ".toRegex(), ">")
                 .replace(" </".toRegex(), "</")

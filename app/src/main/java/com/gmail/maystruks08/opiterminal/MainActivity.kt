@@ -1,5 +1,6 @@
 package com.gmail.maystruks08.opiterminal
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
 import android.widget.Toast
@@ -12,20 +13,25 @@ import java.util.*
 
 private const val CVV_PORT_SEND = 20002
 private const val CVV_PORT_RECEIVE = 20007
+
+//private const val INGENICO_PORT_SEND = 5577
+//private const val INGENICO_PORT_RECEIVE = 5578
+
 private const val SOCKET_CONNECT_TIMEOUT = 4000
 
+//private const val TERMINAL_IP = "192.168.0.200"
 private const val TERMINAL_IP = "192.168.0.125"
 
 private const val WORK_STATION_ID = "Elo C1242435235"
 private const val APPLICATION_SENDER = "SmartCheckout"
 private const val CURRENCY = "EUR"
 
-
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var lastTransactionId: String
+    private var lastTransactionId: Long = -1L
 
 
+    @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -87,34 +93,33 @@ class MainActivity : AppCompatActivity() {
             .workstationID(WORK_STATION_ID)
             .build()
 
-        //TODO remove
         terminal.handler = handler
 
         btnLogin.setOnClickListener {
-            Thread(Runnable {
+            Thread {
                 terminal.initialization()
                 this.runOnUiThread {
                     Toast.makeText(this, "Login finished", Toast.LENGTH_LONG).show()
                 }
-            }).start()
+            }.start()
         }
 
         btnStatus.setOnClickListener {
-            Thread(Runnable {
+            Thread {
                 terminal.status()
                 this.runOnUiThread {
                     Toast.makeText(this, "Status finished", Toast.LENGTH_LONG).show()
                 }
-            }).start()
+            }.start()
         }
 
         btnTransaction.setOnClickListener {
 
-            lastTransactionId = UUID.randomUUID().toString()
+            lastTransactionId = Random().nextLong()
 
-            Thread(Runnable {
+            Thread {
                 val transactionData = Payment.Builder()
-                    .total(BigDecimal.TEN)
+                    .total(BigDecimal("5.00"))
                     .currency(CURRENCY)
                     .transactionId(lastTransactionId)
                     .type(PaymentType.SALE)
@@ -125,11 +130,11 @@ class MainActivity : AppCompatActivity() {
                 this.runOnUiThread {
                     Toast.makeText(this, "Transaction finished", Toast.LENGTH_LONG).show()
                 }
-            }).start()
+            }.start()
         }
 
         btnCancelTransaction.setOnClickListener {
-            Thread(Runnable {
+            Thread {
                 val transactionData = Payment.Builder()
                     .total(BigDecimal.TEN)
                     .currency(CURRENCY)
@@ -142,16 +147,16 @@ class MainActivity : AppCompatActivity() {
                 this.runOnUiThread {
                     Toast.makeText(this, "Cancel transaction finished", Toast.LENGTH_LONG).show()
                 }
-            }).start()
+            }.start()
         }
 
         btnDisconnect.setOnClickListener {
-            Thread(Runnable {
+            Thread {
                 terminal.logout()
                 this.runOnUiThread {
                     Toast.makeText(this, "Logout finished", Toast.LENGTH_LONG).show()
                 }
-            }).start()
+            }.start()
         }
     }
 

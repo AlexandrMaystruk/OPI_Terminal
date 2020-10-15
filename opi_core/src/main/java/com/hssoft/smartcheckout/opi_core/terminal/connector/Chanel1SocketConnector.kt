@@ -20,7 +20,7 @@ class Chanel1SocketConnector {
     private var logger = Logger.getLogger(tag)
 
 
-    private val connectionQueue: Queue<ConnectionInformation?> = ArrayBlockingQueue<ConnectionInformation?>(10)
+    private val connectionQueue: Queue<ConnectionInformation?> = ArrayBlockingQueue(10)
 
     fun receiveData(receivePort: Int?, onDataReceived: (String) -> Unit) {
         val beginTicks: Long = System.currentTimeMillis()
@@ -109,10 +109,10 @@ class Chanel1SocketConnector {
         try {
             val en: Enumeration<NetworkInterface> = NetworkInterface.getNetworkInterfaces()
             while (en.hasMoreElements()) {
-                val intf: NetworkInterface = en.nextElement()
-                val enumIpAddr: Enumeration<InetAddress> = intf.inetAddresses
-                while (enumIpAddr.hasMoreElements()) {
-                    val inetAddress = enumIpAddr.nextElement()
+                val networkInterface: NetworkInterface = en.nextElement()
+                val enumIpAddress: Enumeration<InetAddress> = networkInterface.inetAddresses
+                while (enumIpAddress.hasMoreElements()) {
+                    val inetAddress = enumIpAddress.nextElement()
                     if (!inetAddress.isLoopbackAddress && inetAddress is Inet4Address) {
                         return inetAddress.hostAddress
                     }

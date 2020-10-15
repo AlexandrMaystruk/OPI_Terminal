@@ -15,7 +15,7 @@ data class CardRequest(
     var elmeTunnelCallback: Boolean? = null,
 
     @field: Attribute(name = "RequestID")
-    var requestID: String? = null,
+    var requestID: Long? = null,
 
     @field: Attribute(name = "RequestType")
     var requestType: String? = null,
@@ -43,7 +43,11 @@ data class CardRequest(
     var applicationSender: String? = null,
 
     @field: Attribute(name = "POPID", required = false)
-    var popID: String? = null
+    var popID: String? = null,
+
+    @field: Attribute(name = "ReferenceNumber", required = false)
+    var referenceNumber: String? = null
+
 
 
 ) : BaseXMLEntity() {
