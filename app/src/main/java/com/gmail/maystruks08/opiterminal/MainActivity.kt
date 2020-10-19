@@ -11,16 +11,16 @@ import kotlinx.android.synthetic.main.activity_main.*
 import java.math.BigDecimal
 import java.util.*
 
-private const val CVV_PORT_SEND = 20002
-private const val CVV_PORT_RECEIVE = 20007
 
-//private const val INGENICO_PORT_SEND = 5577
-//private const val INGENICO_PORT_RECEIVE = 5578
-
-private const val SOCKET_CONNECT_TIMEOUT = 4000
+private const val TERMINAL_IP = "192.168.0.125"
+private const val PORT_SEND = 20002
+private const val PORT_RECEIVE = 20007
 
 //private const val TERMINAL_IP = "192.168.0.200"
-private const val TERMINAL_IP = "192.168.0.125"
+//private const val PORT_SEND = 5577
+//private const val PORT_RECEIVE = 5578
+
+private const val SOCKET_CONNECT_TIMEOUT = 4000
 
 private const val WORK_STATION_ID = "Elo C1242435235"
 private const val APPLICATION_SENDER = "SmartCheckout"
@@ -86,8 +86,8 @@ class MainActivity : AppCompatActivity() {
 
         val terminal = Terminal.Builder()
             .ipAddress(TERMINAL_IP)
-            .inputPort(CVV_PORT_SEND)
-            .outputPort(CVV_PORT_RECEIVE)
+            .inputPort(PORT_SEND)
+            .outputPort(PORT_RECEIVE)
             .timeout(SOCKET_CONNECT_TIMEOUT)
             .applicationSender(APPLICATION_SENDER)
             .workstationID(WORK_STATION_ID)
@@ -97,7 +97,7 @@ class MainActivity : AppCompatActivity() {
 
         btnLogin.setOnClickListener {
             Thread {
-                terminal.initialization()
+                terminal.login()
                 this.runOnUiThread {
                     Toast.makeText(this, "Login finished", Toast.LENGTH_LONG).show()
                 }

@@ -12,29 +12,20 @@ import java.io.StringReader
 @Root(name = "ServiceResponse")
 data class ServiceResponse(
 
-    @field: Attribute(name = "xmlns", required = false)
-    var xmlns: String? = "http://www.nrf-arts.org/IXRetail/namespace",
+    @field:Attribute(name = "RequestType", required = true)
+    var requestType: String? = null,
 
-    @field: Attribute(name = "xmlns:xsi", required = false)
-    var xsi: String? = "http://www.w3.org/2001/XMLSchema-instance",
-
-    @field:Element(name = "RequestType", required = false)
-    var RequestType: String? = null,
-
-    @field:Element(name = "ApplicationSender", required = false)
+    @field:Attribute(name = "ApplicationSender", required = false)
     var ApplicationSender: String? = null,
 
-    @field:Element(name = "WorkstationID", required = false)
+    @field:Attribute(name = "WorkstationID", required = true)
     var WorkstationID: String? = null,
 
-    @field:Element(name = "POPID", required = false)
-    var POPID: String? = null,
+    @field:Attribute(name = "RequestID", required = true)
+    var requestID: String? = null,
 
-    @field:Element(name = "RequestID", required = false)
-    var RequestID: String? = null,
-
-    @field:Element(name = "OverallResult", required = false)
-    var OverallResult: String? = null,
+    @field:Attribute(name = "OverallResult", required = true)
+    var result: String? = null,
 
     @field:Element(name = "Terminal", required = false)
     var terminal: Terminal? = null,
@@ -45,7 +36,7 @@ data class ServiceResponse(
     @field:Element(name = "Reconciliation", required = false)
     var reconciliation: Reconciliation? = null,
 
-    @field:Element(name = "DiagnosisResult", required = false)
+    @field:Attribute(name = "DiagnosisResult", required = false)
     var diagnosisResult: String? = null,
 
     @field:Element(name = "OriginalHeader", required = false)
@@ -56,6 +47,10 @@ data class ServiceResponse(
 
 ) : BaseXMLEntity() {
 
+    constructor(xmlString: String) : this() {
+        deserializeFromXMLString(xmlString)
+    }
+
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
         val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
@@ -63,10 +58,9 @@ data class ServiceResponse(
         try {
             serializer.read(this::class.java, reader, false)
                 ?.also {
-                    this.RequestType = it.RequestType
-                    this.POPID = it.POPID
-                    this.RequestID = it.RequestID
-                    this.OverallResult = it.OverallResult
+                    this.requestType = it.requestType
+                    this.requestID = it.requestID
+                    this.result = it.result
                     this.terminal = it.terminal
                     this.authorisation = it.authorisation
                     this.reconciliation = it.reconciliation
@@ -82,59 +76,54 @@ data class ServiceResponse(
     @Root(name = "Terminal")
     data class Terminal(
 
-        @field:Element(name = "TerminalID", required = false)
-        var TerminalID: String? = null,
+        @field: Attribute(name = "TerminalID", required = true)
+        var id: String? = null
 
-        @field:Element(name = "TerminalBatch", required = false)
-        var TerminalBatch: String? = null,
-
-        @field:Element(name = "STAN", required = false)
-        var STAN: String? = null
     )
 
     @Root(name = "Authorisation")
     data class Authorisation(
 
-        @field:Element(name = "AcquirerID", required = false)
-        var AcquirerID: String? = null,
+        @field:Attribute(name = "AcquirerID", required = false)
+        var acquirerID: String? = null,
 
-        @field:Element(name = "TimeStamp", required = false)
-        var TimeStamp: String? = null,
+        @field:Attribute(name = "TimeStamp", required = false)
+        var timeStamp: String? = null,
 
-        @field:Element(name = "ApprovalCode", required = false)
-        var ApprovalCode: String? = null,
+        @field:Attribute(name = "ApprovalCode", required = false)
+        var approvalCode: String? = null,
 
-        @field:Element(name = "AcquirerBatch", required = false)
-        var AcquirerBatch: String? = null
+        @field:Attribute(name = "AcquirerBatch", required = false)
+        var acquirerBatch: String? = null
     )
 
-    @Root(name = "Authorisation")
+    @Root(name = "Reconciliation")
     data class Reconciliation(
 
-        @field:Element(name = "TotalAmount", required = false)
+        @field:Attribute(name = "TotalAmount", required = false)
         var totalAmount: TotalAmount? = null,
 
-        @field:Element(name = "LanguageCode", required = false)
-        var LanguageCode: String? = null
+        @field:Attribute(name = "LanguageCode", required = false)
+        var languageCode: String? = null
     )
 
     @Root(name = "TotalAmount")
     data class TotalAmount(
 
-        @field: Element(name = "NumberPayments", required = true)
-        var NumberPayments: String? = null,
+        @field: Attribute(name = "NumberPayments", required = true)
+        var numberPayments: String? = null,
 
-        @field: Element(name = "PaymentType", required = true)
-        var PaymentType: String? = null,
+        @field: Attribute(name = "PaymentType", required = true)
+        var paymentType: String? = null,
 
-        @field: Element(name = "Currency", required = true)
-        var Currency: String? = null,
+        @field: Attribute(name = "Currency", required = true)
+        var currency: String? = null,
 
-        @field: Element(name = "CardCircuit", required = true)
-        var CardCircuit: String? = null,
+        @field: Attribute(name = "CardCircuit", required = true)
+        var cardCircuit: String? = null,
 
-        @field: Element(name = "Acquirer", required = true)
-        var Acquirer: String? = null,
+        @field: Attribute(name = "Acquirer", required = true)
+        var acquirer: String? = null,
 
         //not field
         var total: String? = null
@@ -143,23 +132,20 @@ data class ServiceResponse(
     @Root(name = "OriginalHeader")
     data class OriginalHeader(
 
-        @field: Element(name = "RequestType", required = true)
-        var RequestType: String? = null,
+        @field: Attribute(name = "RequestType", required = true)
+        var requestType: String? = null,
 
-        @field: Element(name = "ApplicationSender", required = true)
-        var ApplicationSender: String? = null,
+        @field: Attribute(name = "ApplicationSender", required = true)
+        var applicationSender: String? = null,
 
-        @field: Element(name = "WorkstationID", required = true)
-        var WorkstationID: String? = null,
+        @field: Attribute(name = "WorkstationID", required = true)
+        var workstationID: String? = null,
 
-        @field: Element(name = "POPID", required = true)
-        var POPID: String? = null,
+        @field: Attribute(name = "RequestID", required = true)
+        var requestID: String? = null,
 
-        @field: Element(name = "RequestID", required = true)
-        var RequestID: String? = null,
-
-        @field: Element(name = "OverallResult", required = true)
-        var OverallResult: String? = null
+        @field: Attribute(name = "OverallResult", required = true)
+        var overallResult: String? = null
     )
 }
 

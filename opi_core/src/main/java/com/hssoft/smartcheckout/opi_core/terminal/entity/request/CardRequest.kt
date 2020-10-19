@@ -1,18 +1,17 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import org.simpleframework.xml.*
-import org.simpleframework.xml.core.Persister
-import org.simpleframework.xml.stream.Format
-import java.io.Reader
-import java.io.StringReader
+import org.simpleframework.xml.Attribute
+import org.simpleframework.xml.Element
+import org.simpleframework.xml.Namespace
+import org.simpleframework.xml.Root
 
 
 @Root(name = "CardServiceRequest")
 data class CardRequest(
 
     @field: Attribute(name = "ElmeTunnelCallback", required = false)
-    var elmeTunnelCallback: Boolean? = null,
+    var tunnelCallback: Boolean? = null,
 
     @field: Attribute(name = "RequestID")
     var requestID: Long? = null,
@@ -49,21 +48,7 @@ data class CardRequest(
     var referenceNumber: String? = null
 
 
-
-) : BaseXMLEntity() {
-
-    override fun deserializeFromXMLString(xmlString: String) {
-        val reader: Reader = StringReader(xmlString)
-        val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
-        val serializer = Persister(format)
-        try {
-            val cardServiceRequest = serializer.read(CardRequest::class.java, reader, false)
-            this.posData = cardServiceRequest.posData
-            this.privateData = cardServiceRequest.privateData
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+): BaseXMLEntity() {
 
     @Root(name = "TotalAmount")
     data class TotalAmount(
@@ -133,6 +118,10 @@ data class CardRequest(
 
     @Root(name = "CardServiceRequest")
     enum class ClerkPermission { Low, Medium, High }
+
+    override fun deserializeFromXMLString(xmlString: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 

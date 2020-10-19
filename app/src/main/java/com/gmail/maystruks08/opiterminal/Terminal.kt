@@ -8,6 +8,8 @@ import com.hssoft.smartcheckout.opi_core.terminal.entity.Payment
 import com.hssoft.smartcheckout.opi_core.terminal.entity.RequestType
 import com.hssoft.smartcheckout.opi_core.terminal.entity.request.CardRequest
 import com.hssoft.smartcheckout.opi_core.terminal.entity.request.ServiceRequest
+import com.hssoft.smartcheckout.opi_core.terminal.entity.response.CardResponse
+import com.hssoft.smartcheckout.opi_core.terminal.entity.response.ServiceResponse
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.logging.Level
@@ -16,7 +18,8 @@ import java.util.logging.Logger
 const val SERVER_UTC_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 const val TEXT_OUTPUT_TIMEOUT = "120"
 
-fun Date.toServerUTCFormat(): String = SimpleDateFormat(SERVER_UTC_FORMAT, Locale.getDefault()).format(this)
+fun Date.toServerUTCFormat(): String =
+    SimpleDateFormat(SERVER_UTC_FORMAT, Locale.getDefault()).format(this)
 
 class Terminal(
     private val ipAddress: String?,
@@ -28,11 +31,9 @@ class Terminal(
     private val clientChanel: Chanel0SocketConnector,
     private val serverChanel: Chanel1SocketConnector
 ) {
-    private val tag = "Terminal"
-
+    private val tag = "OPI_Terminal"
     private var logger = Logger.getLogger(tag)
-
-    lateinit var handler: Handler //TODO remove
+    lateinit var handler: Handler
 
     class Builder {
 
@@ -66,7 +67,7 @@ class Terminal(
         }
     }
 
-    fun initialization() {
+    fun login() {
         Thread {
             clientChanel.openSendConnection(ipAddress, inputPort, timeout)
             val serviceRequest1 = ServiceRequest(
@@ -81,18 +82,15 @@ class Terminal(
             clientChanel.sendData(serviceRequest1.serializeToXMLString())
             logger.log(Level.INFO, serviceRequest1.serializeToXMLString())
 
-            val response0 = clientChanel.read()
+            val serviceRequest = ServiceRequest(clientChanel.read().orEmpty())
 
-            sendLogToUI("0", response0)
-
+            sendLogToUI("0", serviceRequest.toString())
             clientChanel.disconnect()
         }.start()
     }
 
     fun status() {
-
         clientChanel.openSendConnection(ipAddress, inputPort, timeout)
-
         val serviceRequest = ServiceRequest(
             requestType = RequestType.Login.name,
             applicationSender = applicationSender,
@@ -102,11 +100,8 @@ class Terminal(
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         clientChanel.sendData(serviceRequest.serializeToXMLString())
-
-        val response2 = clientChanel.read()
-
-        sendLogToUI("2", response2)
-
+        val serviceResponse = ServiceResponse(clientChanel.read().orEmpty())
+        sendLogToUI("2", serviceResponse.toString())
         clientChanel.disconnect()
     }
 
@@ -129,30 +124,33 @@ class Terminal(
                 paymentAmount = paymentData.total.toString()
             )
         )
-
         val cardRequest = cardServiceRequest.serializeToXMLString()
-
         clientChanel.sendData(cardRequest)
 
-        val response3 = clientChanel.read()
-
-        sendLogToUI("3", response3)
-
+        val cardResponse = CardResponse(clientChanel.read().orEmpty())
+        sendLogToUI("3", cardResponse.toString())
         clientChanel.disconnect()
+        serverChanel.receiveData(outputPort) {
+            sendLogToUI("10", "Message from device ->>>>>>>>>>>>>>>>>\n$it")
+            serverChanel.closeConnection()
+        }
+    }
 
-        //THIS SHIT NOT WORKS, I DON'T KNOW WHY =(
-        Thread {
+
+    fun getMessageFromDevice(){
+        var serverThread: Thread? = null
+        serverThread = Thread {
             serverChanel.receiveData(outputPort) {
                 sendLogToUI("10", "Message from device ->>>>>>>>>>>>>>>>>\n$it")
+                serverThread?.interrupt()
             }
-        }.start()
+        }
+        serverThread.start()
     }
 
     fun cancelTransaction(paymentData: Payment) {
         clientChanel.openSendConnection(ipAddress, inputPort, timeout)
-
         val cardServiceRequest = CardRequest(
-            elmeTunnelCallback = true,
             requestID = paymentData.transactionId,
             workstationID = workstationID,
             requestType = RequestType.PaymentReversal.name,
@@ -169,26 +167,23 @@ class Terminal(
             )
         )
         clientChanel.sendData(cardServiceRequest.serializeToXMLString())
-        val response5 = clientChanel.read()
-        sendLogToUI("5", response5)
+        val cardResponse = CardResponse(clientChanel.read().orEmpty())
+        sendLogToUI("5", cardResponse.toString())
         clientChanel.disconnect()
     }
 
     fun logout() {
         clientChanel.openSendConnection(ipAddress, inputPort, timeout)
-
         val serviceRequest = ServiceRequest(
             requestType = RequestType.Logoff.name,
             workstationID = workstationID,
-            requestID = "0",
-            elmeTunnelCallback = true,
+            requestID = "8",
             applicationSender = applicationSender,
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         clientChanel.sendData(serviceRequest.serializeToXMLString())
-        val response8 = clientChanel.read()
-
-        sendLogToUI("8", response8)
+        val serviceResponse = ServiceResponse(clientChanel.read().orEmpty())
+        sendLogToUI("8", serviceResponse.toString())
         clientChanel.disconnect()
     }
 

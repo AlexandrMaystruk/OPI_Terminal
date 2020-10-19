@@ -5,17 +5,11 @@ import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
-import org.simpleframework.xml.core.Persister
-import org.simpleframework.xml.stream.Format
-import java.io.Reader
-import java.io.StringReader
 import java.math.BigDecimal
 import java.util.*
 
-
 @Root(name = "ServiceRequest")
 data class ServiceRequest(
-
 
     @field:Attribute(name = "ApplicationSender")
     var applicationSender: String? = null,
@@ -43,44 +37,12 @@ data class ServiceRequest(
     @field:Element(name = "TotalAmount", required = false)
     var totalAmount: TotalAmount? = null,
 
-    @field:Element(name = "Agent", required = false)
-    var agent: String? = null,
-
-    @field:Element(name = "AgentSpecified", required = false)
-    var agentSpecified: Boolean? = null,
-
     @field:Element(name = "PrivateData", required = false)
     var privateData: PrivateData? = null
-
-
 ) : BaseXMLEntity() {
-
-    override fun deserializeFromXMLString(xmlString: String) {
-        val reader: Reader = StringReader(xmlString)
-        val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
-        val serializer = Persister(format)
-        try {
-            serializer.read(this::class.java, reader, false)
-                ?.also {
-                    this.posData = it.posData
-                    this.totalAmount = it.totalAmount
-                    this.agent = it.agent
-                    this.agentSpecified = it.agentSpecified
-                    this.privateData = it.privateData
-                    this.requestType = it.requestType
-                    this.applicationSender = it.applicationSender
-                    this.workstationID = it.workstationID
-                    this.popID = it.popID
-                    this.requestID = it.requestID
-                }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
 
     @Root(name = "ClerkPermission")
     enum class ClerkPermission { Low, Medium, High }
-
 
     @Root(name = "POSdata")
     data class PosData constructor(
@@ -155,6 +117,10 @@ data class ServiceRequest(
 
     @Root(name = "DiagnosisMethod")
     enum class DiagnosisMethod { OnLine, Local, POPInit, POPInitAll, PrinterStatus }
+
+    override fun deserializeFromXMLString(xmlString: String) {
+        TODO("Not yet implemented")
+    }
 
 }
 

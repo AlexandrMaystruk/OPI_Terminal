@@ -2,8 +2,6 @@ package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
 import org.simpleframework.xml.*
-import java.io.Reader
-import java.io.StringReader
 
 @Root(name = "DeviceRequest")
 data class DeviceRequest(
@@ -44,27 +42,7 @@ data class DeviceRequest(
     @field: Element(name = "Event", required = false)
     var event: Event? = null
 
-) : BaseXMLEntity() {
-
-
-    override fun deserializeFromXMLString(xmlString: String) {
-        val reader: Reader = StringReader(xmlString)
-        try {
-            val deviceRequest = serializer.read(this::class.java, reader, false)
-            this.requestType = deviceRequest.requestType
-            this.applicationSender = deviceRequest.applicationSender
-            this.workstationID = deviceRequest.workstationID
-            this.terminalID = deviceRequest.terminalID
-            this.popID = deviceRequest.popID
-            this.requestID = deviceRequest.requestID
-            this.sequenceID = deviceRequest.sequenceID
-            this.output = deviceRequest.output
-            this.input = deviceRequest.input
-            this.event = deviceRequest.event
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
+) : BaseXMLEntity(){
 
     @Root(name = "Output")
     data class Output(
@@ -227,5 +205,9 @@ data class DeviceRequest(
         @field: Element(name = "hex")
         var hex: String
     )
+
+    override fun deserializeFromXMLString(xmlString: String) {
+        TODO("Not yet implemented")
+    }
 
 }

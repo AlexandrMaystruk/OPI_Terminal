@@ -12,7 +12,6 @@ import java.io.StringReader
 @Root(name = "DeviceResponse")
 data class DeviceResponse(
 
-
     @field: Attribute(name = "RequestType")
     var RequestType: String = "",
 
@@ -58,6 +57,9 @@ data class DeviceResponse(
 
 ) : BaseXMLEntity() {
 
+    constructor(xmlString: String) : this() {
+        deserializeFromXMLString(xmlString)
+    }
 
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
