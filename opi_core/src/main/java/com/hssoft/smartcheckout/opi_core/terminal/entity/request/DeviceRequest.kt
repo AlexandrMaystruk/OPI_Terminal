@@ -28,7 +28,7 @@ data class DeviceRequest(
     var popID: String? = null,
 
     @field: Attribute(name = "RequestID", required = false)
-    var requestID: String? = null,
+    var requestID: Long? = null,
 
     @field: Attribute(name = "SequenceID", required = false)
     var sequenceID: String? = null,

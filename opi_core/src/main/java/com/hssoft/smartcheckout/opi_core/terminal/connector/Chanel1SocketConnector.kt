@@ -5,6 +5,7 @@ import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
 import java.net.*
+import java.nio.ByteBuffer
 import java.util.*
 import java.util.concurrent.ArrayBlockingQueue
 import java.util.logging.Level
@@ -26,7 +27,6 @@ class Chanel1SocketConnector {
         val beginTicks: Long = System.currentTimeMillis()
         if (receivePort == null || receivePort == 0) {
             operationTime = System.currentTimeMillis() - beginTicks
-            println("Error receivePort is null or 0.")
             logger.log(Level.INFO,"Error receivePort is null or 0.")
             logger.log(Level.INFO,"Method receiveData() finished. Operation time $operationTime ms")
             return
@@ -46,7 +46,9 @@ class Chanel1SocketConnector {
                             DataInputStream(inputStream).use {
                                 while (clientSocket!!.isConnected) {
                                     val serverMessage = it.readUTF()
-                                    onDataReceived(serverMessage)
+                                    if(serverMessage.isNotEmpty()){
+                                        onDataReceived(serverMessage)
+                                    }
                                 }
                             }
                         }
@@ -61,14 +63,22 @@ class Chanel1SocketConnector {
         }
     }
 
-    @Throws(IOException::class)
-    fun write(message: ByteArray) {
+    fun write(message: String): Boolean {
         val connectionInformation = connectionQueue.remove()
-        if (connectionInformation?.channel1InputStream != null) {
-            connectionInformation.channel1OutputStream.write(message)
-            connectionInformation.channel1OutputStream.flush()
-        } else {
-            logger.log(Level.INFO,"Failed to send message to terminal using channel 1: no OutputStream available")
+        return try {
+            val out = connectionInformation?.channel1OutputStream!!
+            synchronized(out) {
+                val messageBytes = message.toByteArray()
+                out.write(ByteBuffer.allocate(4).putInt(messageBytes.size).array())
+                out.write(messageBytes)
+                logger.log(Level.INFO, "Send data $message")
+            }
+            logger.log(Level.INFO, "Method sendData() finished. Operation time $operationTime ms")
+            true
+        } catch (e: IOException) {
+            logger.log(Level.INFO, "Failed to send message to terminal using channel 1: no OutputStream available")
+            logger.log(Level.INFO, "Method sendData() finished. Operation time $operationTime ms")
+            false
         }
     }
 

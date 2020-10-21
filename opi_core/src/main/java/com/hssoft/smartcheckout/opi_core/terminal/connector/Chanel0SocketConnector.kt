@@ -69,8 +69,9 @@ class Chanel0SocketConnector {
                 val out = bufferOut!!
                 return try {
                     synchronized(out) {
-                        out.write(ByteBuffer.allocate(4).putInt(message.toByteArray().size).array())
-                        out.write(message.toByteArray())
+                        val messageBytes = message.toByteArray()
+                        out.write(ByteBuffer.allocate(4).putInt(messageBytes.size).array())
+                        out.write(messageBytes)
                         logger.log(Level.INFO,"Send data $message")
                     }
                     operationTime = System.currentTimeMillis() - beginTicks
@@ -87,7 +88,6 @@ class Chanel0SocketConnector {
             logger.log(Level.INFO,"Method sendData() finished. Operation time $operationTime ms")
             return false
         }
-        operationTime = System.currentTimeMillis() - beginTicks
         operationTime = System.currentTimeMillis() - beginTicks
         logger.log(Level.INFO,"Send data socket is null or closed")
         logger.log(Level.INFO,"Method sendData() finished. Operation time $operationTime ms")

@@ -1,6 +1,7 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.response
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
+import com.hssoft.smartcheckout.opi_core.terminal.entity.Result
 import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
@@ -16,14 +17,14 @@ data class CardResponse(
     @field:Attribute(name = "RequestType", required = true)
     var requestType: String = "",
 
-    @field:Attribute(name = "ElmeErrorCode", required = true)
-    var errorCode: String = "",
+    @field:Attribute(name = "ElmeErrorCode", required = false)
+    var ElmeErrorCode: String = "",
 
-    @field:Attribute(name = "ElmeErrorText", required = true)
-    var errorText: String = "",
+    @field:Attribute(name = "ElmeErrorText", required = false)
+    var ElmeErrorText: String = "",
 
     @field:Attribute(name = "OverallResult", required = true)
-    var result: String = "",
+    var result: Result = Result.Failure,
 
     @field:Attribute(name = "WorkstationID", required = false)
     var workstationID: String = "",
@@ -102,8 +103,8 @@ data class CardResponse(
                 this.receiptNumber = it.receiptNumber
                 this.totalAmount = it.totalAmount
                 this.result = it.result
-                this.errorCode = it.errorCode
-                this.errorText = it.errorText
+                this.ElmeErrorCode = it.ElmeErrorCode
+                this.ElmeErrorText = it.ElmeErrorText
             }
         } catch (e: Exception) {
             e.printStackTrace()

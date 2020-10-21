@@ -1,10 +1,7 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.request
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import org.simpleframework.xml.Attribute
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Namespace
-import org.simpleframework.xml.Root
+import org.simpleframework.xml.*
 
 
 @Root(name = "CardServiceRequest")
