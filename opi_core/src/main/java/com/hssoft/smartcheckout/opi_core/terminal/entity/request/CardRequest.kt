@@ -45,7 +45,7 @@ data class CardRequest(
     var referenceNumber: String? = null
 
 
-): BaseXMLEntity() {
+) : BaseXMLEntity() {
 
     @Root(name = "TotalAmount")
     data class TotalAmount(

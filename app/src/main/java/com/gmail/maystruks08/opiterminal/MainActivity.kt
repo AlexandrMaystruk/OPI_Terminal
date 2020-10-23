@@ -20,7 +20,7 @@ private const val TERMINAL_IP = "192.168.0.200"
 private const val PORT_SEND = 5577
 private const val PORT_RECEIVE = 5578
 
-private const val SOCKET_CONNECT_TIMEOUT = 4000
+private const val SOCKET_CONNECT_TIMEOUT = 40000
 
 private const val WORK_STATION_ID = "Elo C1242435235"
 private const val APPLICATION_SENDER = "SmartCheckout"
@@ -37,50 +37,8 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val handler = Handler {
-            when (it.what) {
-                0 -> {
-                    val messageData = it.data.getString("0") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                1 -> {
-                    val messageData = it.data.getString("1") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                2 -> {
-                    val messageData = it.data.getString("2") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                3 -> {
-                    val messageData = it.data.getString("3") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                4 -> {
-                    val messageData = it.data.getString("4") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                5 -> {
-                    val messageData = it.data.getString("5") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                6 -> {
-                    val messageData = it.data.getString("6") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                7 -> {
-                    val messageData = it.data.getString("7") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-
-                10 -> {
-                    val messageData = it.data.getString("10") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-                11 -> {
-                    val messageData = it.data.getString("11") ?: ""
-                    textView.text = textView.text.toString() + "\n" + "\n" + messageData
-                }
-
-            }
+            val messageData = it.data.getString("0") ?: ""
+            textView.text = textView.text.toString() + "\n" + "\n" + messageData
             return@Handler true
         }
 
@@ -135,15 +93,7 @@ class MainActivity : AppCompatActivity() {
 
         btnCancelTransaction.setOnClickListener {
             Thread {
-                val transactionData = Payment.Builder()
-                    .total(BigDecimal.TEN)
-                    .currency(CURRENCY)
-                    .transactionId(lastTransactionId)
-                    .type(PaymentType.SALE)
-                    .lastReceiptNumber(6)
-                    .build()
-
-                terminal.cancelTransaction(transactionData)
+                terminal.cancelOperation("0")
                 this.runOnUiThread {
                     Toast.makeText(this, "Cancel transaction finished", Toast.LENGTH_LONG).show()
                 }

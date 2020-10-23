@@ -19,24 +19,24 @@ abstract class BaseXMLEntity {
 
     private val writer: Writer = StringWriter()
     private val format = Format("<?xml version=\"1.0\" encoding=\"utf-8\" ?>")
-    val serializer = Persister(format)
+    private val serializer = Persister(format)
 
     open fun serializeToXMLString(): String {
 
         return try {
             serializer.write(this, writer)
             val result = writer.toString()
-                .replace("\n", "")
-                .replace("\\s+".toRegex(), " ")
-                .replace("&quot;".toRegex(), "\"")
-                .replace("&gt;".toRegex(), ">")
-                .replace("<SimpleText>".toRegex(), "")
-                .replace("</SimpleText>".toRegex(), "")
-                .replace("\" ?", "\"?")
+                    .replace("\n", "")
+                    .replace("\\s+".toRegex(), " ")
+                    .replace("&quot;".toRegex(), "\"")
+                    .replace("&gt;".toRegex(), ">")
+                    .replace("<SimpleText>".toRegex(), "")
+                    .replace("</SimpleText>".toRegex(), "")
+                    .replace("\" ?", "\"?")
             result
-                .replace("> ".toRegex(), ">")
-                .replace(" </".toRegex(), "</")
-                .trim()
+                    .replace("> ".toRegex(), ">")
+                    .replace(" </".toRegex(), "</")
+                    .trim()
         } catch (e: Exception) {
             throw SerializeToXmlException(e.stackTraceString)
         }

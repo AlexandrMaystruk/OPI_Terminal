@@ -1,6 +1,6 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity
 
-enum class Result {
+enum class OperationResult {
     Success,
     Failure,
     PartialFailure,

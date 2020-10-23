@@ -1,9 +1,8 @@
 package com.hssoft.smartcheckout.opi_core.terminal.entity.response
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import org.simpleframework.xml.Attribute
-import org.simpleframework.xml.Element
-import org.simpleframework.xml.Root
+import com.hssoft.smartcheckout.opi_core.terminal.entity.OperationResult
+import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
 import java.io.Reader
@@ -16,16 +15,16 @@ data class ServiceResponse(
     var requestType: String? = null,
 
     @field:Attribute(name = "ApplicationSender", required = false)
-    var ApplicationSender: String? = null,
+    var applicationSender: String? = null,
 
     @field:Attribute(name = "WorkstationID", required = true)
-    var WorkstationID: String? = null,
+    var workstationID: String? = null,
 
     @field:Attribute(name = "RequestID", required = true)
     var requestID: String? = null,
 
     @field:Attribute(name = "OverallResult", required = true)
-    var result: String? = null,
+    var operationResult: OperationResult = OperationResult.Failure,
 
     @field:Element(name = "Terminal", required = false)
     var terminal: Terminal? = null,
@@ -43,7 +42,7 @@ data class ServiceResponse(
     var originalHeader: OriginalHeader? = null,
 
     @field:Element(name = "PrivateData", required = false)
-    var privateData: String? = null
+    var privateData: PrivateData? = null
 
 ) : BaseXMLEntity() {
 
@@ -59,8 +58,10 @@ data class ServiceResponse(
             serializer.read(this::class.java, reader, false)
                 ?.also {
                     this.requestType = it.requestType
+                    this.applicationSender = it.applicationSender
+                    this.workstationID = it.workstationID
                     this.requestID = it.requestID
-                    this.result = it.result
+                    this.operationResult = it.operationResult
                     this.terminal = it.terminal
                     this.authorisation = it.authorisation
                     this.reconciliation = it.reconciliation
@@ -78,6 +79,15 @@ data class ServiceResponse(
 
         @field: Attribute(name = "TerminalID", required = true)
         var id: String? = null
+
+    )
+
+    @Root(name = "PrivateData")
+    data class PrivateData(
+
+        @field: Text
+        @field:Path("RebootInfo")
+        var rebootInfo: String? = null
 
     )
 

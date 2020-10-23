@@ -10,7 +10,7 @@ data class Payment(
     val currency: String,
     val transactionId: Long,
     val type: PaymentType,
-    val lastReceiptNumber: Int
+    val lastReceiptNumber: Long
 ) {
 
     class Builder {
@@ -18,13 +18,13 @@ data class Payment(
         private var currency: String = "EUR"
         private var transactionId: Long = Random().nextLong()
         private var type: PaymentType = PaymentType.SALE
-        private var lastReceiptNumber: Int = -1
+        private var lastReceiptNumber: Long = -1
 
         fun total(total: BigDecimal) = apply { this.total = total }
         fun currency(currency: String) = apply { this.currency = currency }
         fun transactionId(transactionId: Long) = apply { this.transactionId = transactionId }
         fun type(type: PaymentType) = apply { this.type = type }
-        fun lastReceiptNumber(number: Int) = apply { this.lastReceiptNumber = number }
+        fun lastReceiptNumber(number: Long) = apply { this.lastReceiptNumber = number }
 
         fun build(): Payment {
             return Payment(
