@@ -117,7 +117,6 @@ class Terminal(
                     logTransaction("server response: $response")
                 }, {
                     logTransaction("server shutdown")
-                    deviceChanelHandler.shutdown()
                 })
         }
     }

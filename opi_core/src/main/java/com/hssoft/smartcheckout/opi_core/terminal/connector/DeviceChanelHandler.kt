@@ -5,7 +5,6 @@ import com.hssoft.smartcheckout.opi_core.terminal.entity.request.DeviceRequest
 import com.hssoft.smartcheckout.opi_core.terminal.entity.response.DeviceResponse
 import com.hssoft.smartcheckout.opi_core.terminal.getLocalIpAddress
 import java.net.*
-import java.util.*
 
 class DeviceChanelHandler(private val port: Int, private val timeout: Long) {
 
@@ -22,27 +21,30 @@ class DeviceChanelHandler(private val port: Int, private val timeout: Long) {
         }
         val beginTicks: Long = System.currentTimeMillis()
         var operationTime = 0L
-        while (operationTime < timeout) {
+        while (operationTime < timeout && !server.isClosed) {
             operationTime = System.currentTimeMillis() - beginTicks
             val client = server.accept()
             val clientHandler = PosChanelHandler(client)
             val deviceRequest = clientHandler.read().orEmpty()
             onReceiveMessageFromDevice(deviceRequest)
             val callback = deviceMessageResolver(deviceRequest)
-            clientHandler.write(callback)
-            onSendMessageToDevice(callback)
+            clientHandler.write(callback.serializeToXMLString())
+            onSendMessageToDevice(callback.serializeToXMLString())
             clientHandler.shutdown()
+            if(callback.output.outDeviceTarget == "PrinterReceipt" && callback.result == OperationResult.Success) shutdown()
         }
-        onCommunicationWithDeviceFinished()
+        shutdown()
     }
 
     fun shutdown() {
-        serverSocket?.close()
-        serverSocket = null
+        if(serverSocket?.isClosed == false){
+            serverSocket?.close()
+            serverSocket = null
+        }
     }
 
     //return confirmation message
-    private fun deviceMessageResolver(messageFromDevice: String): String {
+    private fun deviceMessageResolver(messageFromDevice: String): DeviceResponse {
         val deviceRequest = DeviceRequest(messageFromDevice)
         return DeviceResponse(
             requestID = deviceRequest.requestID,
@@ -53,7 +55,7 @@ class DeviceChanelHandler(private val port: Int, private val timeout: Long) {
                 outDeviceTarget = deviceRequest.output?.outDeviceTarget.orEmpty(),
                 outResult = OperationResult.Success.name
             )
-        ).serializeToXMLString()
+        )
     }
 
     private fun createSocket(): ServerSocket {
