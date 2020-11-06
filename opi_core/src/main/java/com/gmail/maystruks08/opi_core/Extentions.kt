@@ -1,11 +1,25 @@
-package com.hssoft.smartcheckout.opi_core.terminal
+package com.gmail.maystruks08.opi_core
 
+import java.io.PrintWriter
+import java.io.StringWriter
 import java.net.Inet4Address
 import java.net.InetAddress
 import java.net.NetworkInterface
 import java.net.SocketException
+import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.concurrent.thread
 
+const val SERVER_UTC_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
+
+fun Date.toServerUTCFormat(): String = SimpleDateFormat(SERVER_UTC_FORMAT, Locale.getDefault()).format(this)
+
+val Exception.stackTraceString: String
+    get() {
+        val stringWriter = StringWriter()
+        this.printStackTrace(PrintWriter(stringWriter))
+        return this.message + "\n" + stringWriter.toString()
+    }
 
 fun getLocalIpAddress(): String? {
     try {
@@ -24,4 +38,20 @@ fun getLocalIpAddress(): String? {
         e.printStackTrace()
     }
     return null
+}
+
+fun asyncWithCatchException(block: () -> Unit): Thread {
+    return thread {
+        runWithCatchException {
+            block()
+        }
+    }.also { it.start() }
+}
+
+fun runWithCatchException(block: () -> Unit){
+    try {
+        block()
+    } catch (e: Exception){
+        //Not need handle exception
+    }
 }

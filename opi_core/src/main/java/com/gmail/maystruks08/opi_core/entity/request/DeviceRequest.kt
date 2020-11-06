@@ -1,6 +1,6 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity.request
+package com.gmail.maystruks08.opi_core.entity.request
 
-import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
+import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
 import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
@@ -41,6 +41,28 @@ data class DeviceRequest(
     var output: Output? = null
 
 ) : BaseXMLEntity() {
+
+    fun isPrinterRequest(): Boolean {
+        return output?.outDeviceTarget == "Printer"
+    }
+
+    fun isPrinterReceiptRequest(): Boolean {
+        return output?.outDeviceTarget == "PrinterReceipt"
+    }
+
+    fun getReceiptString(): String {
+        return StringBuilder().apply {
+            output?.textLines?.forEach { if (!it.text.isNullOrEmpty()) appendLine(it.text) }
+        }.toString()
+    }
+
+    fun getTotalAmount(): String? {
+        return output?.textLines?.firstOrNull { it.text == "Gesamt" || it.text == "Total" }?.text?.let { line ->
+            val startValueIndex = line.indexOfLast { it == ' ' }
+            if (startValueIndex == -1) return@let null
+            line.substring(startValueIndex, line.lastIndex)
+        }
+    }
 
     @Root(name = "Output")
     data class Output(

@@ -2,7 +2,7 @@ package com.gmail.maystruks08.opiterminal
 
 
 import com.hssoft.smartcheckout.opi_core.terminal.entity.SimpleText
-import com.hssoft.smartcheckout.opi_core.terminal.entity.request.DeviceRequest
+import com.gmail.maystruks08.opi_core.entity.request.DeviceRequest
 import org.junit.Test
 
 class ExampleUnitTest {

@@ -1,4 +1,4 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity
+package com.gmail.maystruks08.opi_core.entity
 
 enum class OperationResult {
     Success,
@@ -11,5 +11,6 @@ enum class OperationResult {
     ParsingError,
     ValidationError,
     MissingMandatoryData,
+    Loggedout,
     Busy
 }

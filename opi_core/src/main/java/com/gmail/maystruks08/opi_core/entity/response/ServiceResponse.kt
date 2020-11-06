@@ -1,7 +1,7 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity.response
+package com.gmail.maystruks08.opi_core.entity.response
 
-import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import com.hssoft.smartcheckout.opi_core.terminal.entity.OperationResult
+import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
+import com.gmail.maystruks08.opi_core.entity.OperationResult
 import org.simpleframework.xml.*
 import org.simpleframework.xml.core.Persister
 import org.simpleframework.xml.stream.Format
@@ -45,6 +45,10 @@ data class ServiceResponse(
     var privateData: PrivateData? = null
 
 ) : BaseXMLEntity() {
+
+    var receipt: String? = null
+
+    var totalAmount: String? = null
 
     constructor(xmlString: String) : this() {
         deserializeFromXMLString(xmlString)

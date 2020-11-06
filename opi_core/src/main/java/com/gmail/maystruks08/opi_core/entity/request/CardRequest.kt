@@ -1,7 +1,10 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity.request
+package com.gmail.maystruks08.opi_core.entity.request
 
-import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import org.simpleframework.xml.*
+import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
+import org.simpleframework.xml.Attribute
+import org.simpleframework.xml.Element
+import org.simpleframework.xml.Namespace
+import org.simpleframework.xml.Root
 
 
 @Root(name = "CardServiceRequest")
@@ -27,7 +30,6 @@ data class CardRequest(
 
     @field: Element(name = "PrivateData", required = true)
     var privateData: PrivateData? = null,
-
 
     @field: Element(name = "TotalAmount")
     var totalAmount: TotalAmount? = null,
@@ -83,9 +85,6 @@ data class CardRequest(
         @field:Element(name = "ManualPAN", required = false)
         var manualPAN: Boolean? = null,
 
-        @field:Element(name = "ClerkPermission", required = false)
-        var clerkPermission: ClerkPermission? = null,
-
         @field:Element(name = "TransactionNumber", required = false)
         var transactionNumber: String? = null,
 
@@ -112,9 +111,6 @@ data class CardRequest(
         @field:Element(name = "ApplicationID", required = false)
         var applicationID: String? = null
     )
-
-    @Root(name = "CardServiceRequest")
-    enum class ClerkPermission { Low, Medium, High }
 
     override fun deserializeFromXMLString(xmlString: String) {
         TODO("Not yet implemented")

@@ -1,4 +1,4 @@
-package com.hssoft.smartcheckout.opi_core.terminal.connector
+package com.gmail.maystruks08.opi_core.connector
 
 import java.io.DataOutputStream
 import java.io.InputStream
@@ -6,29 +6,30 @@ import java.net.InetSocketAddress
 import java.net.Socket
 import java.nio.ByteBuffer
 
-class PosChanelHandler(private val client: Socket) {
+class PosChanelHandler(private val client: Socket, private val logger: OPILogger) {
 
-    constructor(ipAddress: String, inputPort: Int, timeout: Int) : this(Socket().apply {
+    constructor(ipAddress: String, inputPort: Int, timeout: Int, logger: OPILogger) : this(Socket().apply {
         val address = InetSocketAddress(ipAddress, inputPort)
         connect(address, timeout)
-    })
+    }, logger)
 
     private var running: Boolean = true
     private val writer: DataOutputStream = DataOutputStream(client.getOutputStream())
 
-
     fun read(): String? {
         running = true
-        while (running) {
+        while (running && !client.isClosed) {
             try {
-                return client.getInputStream().convertBytesToString()
-            } catch (ex: Exception) {
+                val readiedMessage = client.getInputStream().convertBytesToString()
+                readiedMessage?.let { logger.log("POS receive message: $it") }
+                return readiedMessage
+            } catch (e: Exception) {
+                logger.logError(e, "POS read message error")
                 shutdown()
             }
         }
         return null
     }
-
 
     fun write(message: String) {
         try {
@@ -36,17 +37,24 @@ class PosChanelHandler(private val client: Socket) {
                 val messageBytes = message.toByteArray()
                 writer.write(ByteBuffer.allocate(4).putInt(messageBytes.size).array())
                 writer.write(messageBytes)
+                logger.log("POS write message: $message")
             }
         } catch (e: Exception) {
-            println("Write message to device error")
+            logger.logError(e, "POS write message to device error")
         }
     }
 
     fun shutdown() {
-        running = false
-        client.close()
-        println("${client.inetAddress.hostAddress} closed the connection")
-        Thread.currentThread().interrupt()
+        if (running) {
+            try {
+                running = false
+                writer.close()
+                client.close()
+                logger.log("POS ${client.inetAddress.hostAddress} closed the connection")
+            } catch (e: Exception) {
+                logger.log("POS ${client.inetAddress.hostAddress} closed the connection error")
+            }
+        }
     }
 
     private fun InputStream.convertBytesToString(): String? {

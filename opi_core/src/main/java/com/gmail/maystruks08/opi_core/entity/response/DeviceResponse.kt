@@ -1,7 +1,7 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity.response
+package com.gmail.maystruks08.opi_core.entity.response
 
-import com.hssoft.smartcheckout.opi_core.terminal.entity.BaseXMLEntity
-import com.hssoft.smartcheckout.opi_core.terminal.entity.OperationResult
+import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
+import com.gmail.maystruks08.opi_core.entity.OperationResult
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.Root

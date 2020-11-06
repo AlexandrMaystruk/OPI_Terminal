@@ -1,4 +1,4 @@
-package com.hssoft.smartcheckout.opi_core.terminal.entity
+package com.gmail.maystruks08.opi_core.entity
 
 import java.math.BigDecimal
 import java.util.*

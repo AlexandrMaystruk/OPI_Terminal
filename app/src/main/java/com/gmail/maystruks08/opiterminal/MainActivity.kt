@@ -3,10 +3,14 @@ package com.gmail.maystruks08.opiterminal
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.os.Handler
+import android.os.Message
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.hssoft.smartcheckout.opi_core.terminal.entity.Payment
-import com.hssoft.smartcheckout.opi_core.terminal.entity.PaymentType
+import com.gmail.maystruks08.opi_core.Terminal
+import com.gmail.maystruks08.opi_core.connector.OPILogger
+import com.gmail.maystruks08.opi_core.entity.Payment
+import com.gmail.maystruks08.opi_core.entity.PaymentType
 import kotlinx.android.synthetic.main.activity_main.*
 import java.math.BigDecimal
 import java.util.*
@@ -23,7 +27,7 @@ private const val PORT_RECEIVE = 5578
 private const val SOCKET_CONNECT_TIMEOUT = 40000
 
 private const val WORK_STATION_ID = "Elo C1242435235"
-private const val APPLICATION_SENDER = "SmartCheckout"
+private const val APPLICATION_SENDER = "CashRegister"
 private const val CURRENCY = "EUR"
 
 class MainActivity : AppCompatActivity() {
@@ -49,9 +53,8 @@ class MainActivity : AppCompatActivity() {
             .timeout(SOCKET_CONNECT_TIMEOUT)
             .applicationSender(APPLICATION_SENDER)
             .workstationID(WORK_STATION_ID)
+            .logger(OPILoggerImpl(handler))
             .build()
-
-        terminal.handler = handler
 
         btnLogin.setOnClickListener {
             Thread {
@@ -110,4 +113,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+
+    class OPILoggerImpl(private val handler: Handler) : OPILogger {
+
+        override fun log(message: String) {
+            Log.d("TERMINAL", message)
+            handler.sendMessage(
+                Message().apply {
+                    what = 0
+                    data.putString("0", message)
+                })
+        }
+
+        override fun logError(exception: Exception, message: String) {
+            Log.d("TERMINAL", message)
+            handler.sendMessage(
+                Message().apply {
+                    what = 0
+                    data.putString("0", message + "\n" + exception.localizedMessage)
+                })
+        }
+
+        override fun removeOutdateLogFiles() {
+            TODO("Not yet implemented")
+        }
+    }
 }
