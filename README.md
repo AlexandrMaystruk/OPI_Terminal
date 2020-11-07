@@ -76,3 +76,8 @@ Service Request/Response (channel 0)
 Device Request/Response (channel 1)
 
 Using the O.P.I. interface gives a payment solution access to the PoS peripherals, e.g. to a PoS printer to print out receipts, a display to output messages to the cashier or cardholder, or a magnetic card reader. Decoupling the interface in this way increases its flexibility for integration in international, solution and industry-specific scenarios for users as well as for PoS and payment solution providers, and therefore also protects their investments.
+
+<H2>Communication schema with timeouts</H2>
+
+
+![GitHub Logo](Open%20Payment%20Initiative%20timeout.png)
