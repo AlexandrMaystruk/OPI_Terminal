@@ -13,47 +13,43 @@ class PosChanelHandler(private val client: Socket, private val logger: OPILogger
         connect(address, timeout)
     }, logger)
 
-    private var running: Boolean = true
     private val writer: DataOutputStream = DataOutputStream(client.getOutputStream())
+    private val reader: InputStream = client.getInputStream()
 
     fun read(): String? {
-        running = true
-        while (running && !client.isClosed) {
-            try {
-                val readiedMessage = client.getInputStream().convertBytesToString()
-                readiedMessage?.let { logger.log("POS receive message: $it") }
+        try {
+            while (!client.isClosed) {
+                val readiedMessage = reader.convertBytesToString()
+                readiedMessage?.let { logger.log("$TAG receive message: $it") }
                 return readiedMessage
-            } catch (e: Exception) {
-                logger.logError(e, "POS read message error")
-                shutdown()
             }
+        } catch (e: Exception) {
+            logger.logError(e, "$TAG read message error")
+            shutdown()
         }
         return null
     }
 
     fun write(message: String) {
         try {
-            if (!client.isOutputShutdown) {
-                val messageBytes = message.toByteArray()
-                writer.write(ByteBuffer.allocate(4).putInt(messageBytes.size).array())
-                writer.write(messageBytes)
-                logger.log("POS write message: $message")
-            }
+            if (client.isOutputShutdown) return
+            val messageBytes = message.toByteArray()
+            writer.write(ByteBuffer.allocate(4).putInt(messageBytes.size).array())
+            writer.write(messageBytes)
+            logger.log("$TAG write message: $message")
         } catch (e: Exception) {
-            logger.logError(e, "POS write message to device error")
+            logger.logError(e, "$TAG write message to device error")
         }
     }
 
     fun shutdown() {
-        if (running) {
-            try {
-                running = false
-                writer.close()
-                client.close()
-                logger.log("POS ${client.inetAddress.hostAddress} closed the connection")
-            } catch (e: Exception) {
-                logger.log("POS ${client.inetAddress.hostAddress} closed the connection error")
-            }
+        try {
+            writer.close()
+            reader.close()
+            client.close()
+            logger.log("$TAG ${client.inetAddress.hostAddress} closed the connection")
+        } catch (e: Exception) {
+            logger.log("$TAG ${client.inetAddress.hostAddress} closed the connection error")
         }
     }
 
@@ -76,5 +72,9 @@ class PosChanelHandler(private val client: Socket, private val logger: OPILogger
             }
         }
         return String(result)
+    }
+
+    companion object{
+        private const val TAG = "[OPI] POS CHANEL:"
     }
 }

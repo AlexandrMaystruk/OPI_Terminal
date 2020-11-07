@@ -8,7 +8,6 @@ import java.net.NetworkInterface
 import java.net.SocketException
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.concurrent.thread
 
 const val SERVER_UTC_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'"
 
@@ -20,6 +19,7 @@ val Exception.stackTraceString: String
         this.printStackTrace(PrintWriter(stringWriter))
         return this.message + "\n" + stringWriter.toString()
     }
+
 
 fun getLocalIpAddress(): String? {
     try {
@@ -40,18 +40,16 @@ fun getLocalIpAddress(): String? {
     return null
 }
 
+
 fun asyncWithCatchException(block: () -> Unit): Thread {
-    return thread {
-        runWithCatchException {
-            block()
-        }
+    return Thread {
+        runWithCatchException { block() }
     }.also { it.start() }
 }
 
-fun runWithCatchException(block: () -> Unit){
+fun runWithCatchException(block: () -> Unit) {
     try {
         block()
-    } catch (e: Exception){
-        //Not need handle exception
+    } catch (e: Exception) { /*Not need handle exception*/
     }
 }

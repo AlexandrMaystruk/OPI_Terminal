@@ -15,13 +15,13 @@ import com.gmail.maystruks08.opi_core.entity.response.ServiceResponse
 import java.util.*
 
 class Terminal(
-        private val ipAddress: String,
-        private val inputPort: Int,
-        private val outputPort: Int,
-        private val timeout: Int = 30000,
-        private val applicationSender: String?,
-        private val workstationID: String?,
-        private val opiLogger: OPILogger
+    private val ipAddress: String,
+    private val inputPort: Int,
+    private val outputPort: Int,
+    private val timeout: Int = 30000,
+    private val applicationSender: String?,
+    private val workstationID: String?,
+    private val opiLogger: OPILogger
 ) {
     class Builder {
 
@@ -42,140 +42,134 @@ class Terminal(
         fun logger(opiLogger: OPILogger) = apply { this.opiLogger = opiLogger }
         fun build(): Terminal {
             return Terminal(
-                    ipAddress = ipAddress,
-                    inputPort = inputPort,
-                    outputPort = outputPort,
-                    timeout = timeout,
-                    applicationSender = applicationSender,
-                    workstationID = workstationID,
-                    opiLogger = opiLogger
+                ipAddress = ipAddress,
+                inputPort = inputPort,
+                outputPort = outputPort,
+                timeout = timeout,
+                applicationSender = applicationSender,
+                workstationID = workstationID,
+                opiLogger = opiLogger
             )
         }
     }
 
     fun login(): ServiceResponse {
         val serviceRequest = ServiceRequest(
-                requestType = RequestType.Login.name,
-                workstationID = workstationID,
-                requestID = "0",
-                applicationSender = applicationSender,
-                posData = ServiceRequest.PosData(posTimeStamp = Date())
+            requestType = RequestType.Login.name,
+            workstationID = workstationID,
+            requestID = "0",
+            applicationSender = applicationSender,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         return callWithShutdown(serviceRequest)
     }
 
     fun status(): ServiceResponse {
         val serviceRequest = ServiceRequest(
-                requestType = RequestType.Diagnosis.name,
-                applicationSender = applicationSender,
-                workstationID = workstationID,
-                requestID = "0",
-                elmeTunnelCallback = true,
-                posData = ServiceRequest.PosData(posTimeStamp = Date())
+            requestType = RequestType.Diagnosis.name,
+            applicationSender = applicationSender,
+            workstationID = workstationID,
+            requestID = "0",
+            elmeTunnelCallback = true,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         return callWithShutdown(serviceRequest)
     }
 
     fun transaction(paymentData: Payment): CardResponse {
         val cardServiceRequest = CardRequest(
-                requestID = paymentData.transactionId,
-                workstationID = workstationID,
-                requestType = RequestType.CardPayment.name,
-                posData = CardRequest.PosData(
-                        posTimeStamp = Date().toServerUTCFormat(),
-                        usePreselectedCard = false
-                ),
-                privateData = CardRequest.PrivateData(
-                        lastReceiptNumber = paymentData.lastReceiptNumber.toString()
-                ),
-                totalAmount = CardRequest.TotalAmount(
-                        currency = paymentData.currency,
-                        paymentAmount = paymentData.total.toString()
-                )
+            requestID = paymentData.transactionId,
+            workstationID = workstationID,
+            requestType = RequestType.CardPayment.name,
+            posData = CardRequest.PosData(
+                posTimeStamp = Date().toServerUTCFormat(),
+                usePreselectedCard = false
+            ),
+            privateData = CardRequest.PrivateData(
+                lastReceiptNumber = paymentData.lastReceiptNumber.toString()
+            ),
+            totalAmount = CardRequest.TotalAmount(
+                currency = paymentData.currency,
+                paymentAmount = paymentData.total.toString()
+            )
         )
         return callTransactionWithShutdown(cardServiceRequest)
     }
 
     fun cancelTransaction(paymentData: Payment): CardRequest {
         val cardServiceRequest = CardRequest(
-                requestID = paymentData.transactionId,
-                workstationID = workstationID,
-                requestType = RequestType.PaymentReversal.name,
-                privateData = CardRequest.PrivateData(
-                        lastReceiptNumber = paymentData.lastReceiptNumber.toString()
-                ),
-                posData = CardRequest.PosData(
-                        posTimeStamp = Date().toServerUTCFormat(),
-                        usePreselectedCard = false
-                ),
-                totalAmount = CardRequest.TotalAmount(
-                        currency = paymentData.currency,
-                        paymentAmount = paymentData.total.toString()
-                )
+            requestID = paymentData.transactionId,
+            workstationID = workstationID,
+            requestType = RequestType.PaymentReversal.name,
+            privateData = CardRequest.PrivateData(
+                lastReceiptNumber = paymentData.lastReceiptNumber.toString()
+            ),
+            posData = CardRequest.PosData(
+                posTimeStamp = Date().toServerUTCFormat(),
+                usePreselectedCard = false
+            ),
+            totalAmount = CardRequest.TotalAmount(
+                currency = paymentData.currency,
+                paymentAmount = paymentData.total.toString()
+            )
         )
         return callTransactionWithShutdown(cardServiceRequest)
     }
 
     fun reconciliationWithClosure(): ServiceResponse {
         val serviceRequest = ServiceRequest(
-                requestType = RequestType.ReconciliationWithClosure.name,
-                workstationID = workstationID,
-                requestID = "0",
-                applicationSender = applicationSender,
-                posData = ServiceRequest.PosData(posTimeStamp = Date())
+            requestType = RequestType.ReconciliationWithClosure.name,
+            workstationID = workstationID,
+            requestID = "0",
+            applicationSender = applicationSender,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         return callTransactionWithShutdown(serviceRequest)
     }
 
     fun cancelOperation(requestID: String): ServiceResponse {
         val serviceRequest = ServiceRequest(
-                requestType = RequestType.AbortRequest.name,
-                workstationID = workstationID,
-                requestID = requestID,
-                applicationSender = applicationSender,
-                posData = ServiceRequest.PosData(posTimeStamp = Date())
+            requestType = RequestType.AbortRequest.name,
+            workstationID = workstationID,
+            requestID = requestID,
+            applicationSender = applicationSender,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         return callWithShutdown(serviceRequest)
     }
 
     fun logout(): ServiceResponse {
         val serviceRequest = ServiceRequest(
-                requestType = RequestType.Logoff.name,
-                workstationID = workstationID,
-                requestID = "8",
-                applicationSender = applicationSender,
-                posData = ServiceRequest.PosData(posTimeStamp = Date())
+            requestType = RequestType.Logoff.name,
+            workstationID = workstationID,
+            requestID = "8",
+            applicationSender = applicationSender,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
         return callWithShutdown(serviceRequest)
     }
 
     private inline fun <reified Response : BaseXMLEntity> callWithShutdown(xmlEntity: BaseXMLEntity): Response {
-        var posChanelHandler: PosChanelHandler? = null
-        try {
-            posChanelHandler = PosChanelHandler(ipAddress, inputPort, timeout, opiLogger)
-            val request = xmlEntity.serializeToXMLString()
-            posChanelHandler.write(request)
+        val posChanelHandler = PosChanelHandler(ipAddress, inputPort, timeout, opiLogger)
+        val request = xmlEntity.toXMLString()
+        posChanelHandler.write(request)
 
-            val response = posChanelHandler.read().orEmpty()
-            posChanelHandler.shutdown()
-            return when (xmlEntity) {
-                is CardRequest -> CardResponse(response) as Response
-                is DeviceRequest -> DeviceResponse(response) as Response
-                is ServiceRequest -> ServiceResponse(response) as Response
-                else -> throw IllegalStateException("Not request supported type")
-            }
-        } finally {
-            posChanelHandler?.shutdown()
+        val response = posChanelHandler.read().orEmpty()
+        posChanelHandler.shutdown()
+        return when (xmlEntity) {
+            is CardRequest -> CardResponse(response) as Response
+            is DeviceRequest -> DeviceResponse(response) as Response
+            is ServiceRequest -> ServiceResponse(response) as Response
+            else -> throw IllegalStateException("OPI: Not request supported type")
         }
     }
 
     private inline fun <reified Response : BaseXMLEntity> callTransactionWithShutdown(xmlEntity: BaseXMLEntity): Response {
         val posChanelHandler = PosChanelHandler(ipAddress, inputPort, timeout, opiLogger)
-        val deviceChanelHandler = DeviceChanelHandler(outputPort, timeout, opiLogger)
-
-        val request = xmlEntity.serializeToXMLString()
+        val request = xmlEntity.toXMLString()
         posChanelHandler.write(request)
 
+        val deviceChanelHandler = DeviceChanelHandler(outputPort, timeout, opiLogger)
         var deviceRequest: DeviceRequest? = null
         val asyncDeviceCommunication = asyncWithCatchException {
             deviceChanelHandler.runServer { request ->
@@ -185,7 +179,7 @@ class Terminal(
         }
         val response = posChanelHandler.read().orEmpty()
 
-        deviceChanelHandler.shutdown("Device chanel shutdown after receive overall result")
+        deviceChanelHandler.shutdown("shutdown after receive overall result")
         asyncDeviceCommunication.interrupt()
         posChanelHandler.shutdown()
 
@@ -198,7 +192,7 @@ class Terminal(
                 receipt = deviceRequest?.getReceiptString()
                 totalAmount = deviceRequest?.getTotalAmount()
             } as Response
-            else -> throw IllegalStateException("Not supported request type")
+            else -> throw IllegalStateException("OPI: Not supported request type")
         }
     }
 }

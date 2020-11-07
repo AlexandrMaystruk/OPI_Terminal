@@ -5,60 +5,56 @@ import com.gmail.maystruks08.opi_core.entity.OperationResult
 import com.gmail.maystruks08.opi_core.entity.request.DeviceRequest
 import com.gmail.maystruks08.opi_core.entity.response.DeviceResponse
 import com.gmail.maystruks08.opi_core.getLocalIpAddress
+import com.gmail.maystruks08.opi_core.runWithCatchException
 import java.net.InetAddress
 import java.net.ServerSocket
 
-class DeviceChanelHandler(
-    private val port: Int,
-    private val timeout: Int,
-    private val logger: OPILogger
-) {
+class DeviceChanelHandler(private val port: Int, private val timeout: Int, private val logger: OPILogger) {
 
     private var serverSocket: ServerSocket? = null
-    private var posChanelHandler: PosChanelHandler? = null
-    private var isRunning = false
+    private lateinit var posChanelHandler: PosChanelHandler
+    private var timeoutThread: Thread? = null
 
     fun runServer(onReceiveMessageFromDevice: (request: DeviceRequest) -> Unit) {
-        val server = createSocket() ?: return
-        isRunning = true
-
-        asyncWithCatchException {
+        val server = createSocket()
+        if (server == null) {
+            logger.log("$TAG createSocket() return null")
+            return
+        }
+        timeoutThread = asyncWithCatchException {
             Thread.sleep(timeout.toLong())
-            shutdown("Device chanel shutdown by timeout timer")
+            shutdown("$TAG shutdown by timeout timer")
             Thread.currentThread().interrupt()
         }
-
-        val beginTicks: Long = System.currentTimeMillis()
-        var operationTime = 0L
-
-        while (isRunning && operationTime < timeout && !server.isClosed) {
-            operationTime = System.currentTimeMillis() - beginTicks
-            posChanelHandler = PosChanelHandler(server.accept(), logger).apply {
-                val deviceRequestXml = read().orEmpty()
-                val deviceRequest = DeviceRequest(deviceRequestXml)
-                onReceiveMessageFromDevice(deviceRequest)
-
-                val callback = deviceMessageResolver(deviceRequest)
-                write(callback.serializeToXMLString())
-                shutdown()
-            }
-            posChanelHandler = null
+        while (!server.isClosed) {
+            posChanelHandler = PosChanelHandler(server.accept(), logger)
+            val deviceRequestXml = posChanelHandler.read().orEmpty()
+            val deviceRequest = DeviceRequest(deviceRequestXml)
+            onReceiveMessageFromDevice(deviceRequest)
+            posChanelHandler.write(deviceMessageResolver(deviceRequest).toXMLString())
+            posChanelHandler.shutdown()
         }
-        shutdown("Device chanel shutdown")
+    }
+
+    private fun createSocket(): ServerSocket? {
+        return try {
+            shutdown("$TAG Close old socket and create new")
+            ServerSocket(port, 0, InetAddress.getByName(getLocalIpAddress())).also { serverSocket = it }
+        } catch (e: Exception) {
+            logger.logError(e, "$TAG Create server socket error")
+            null
+        }
     }
 
     fun shutdown(message: String) {
-        if (isRunning) {
-            posChanelHandler?.shutdown()
-            try {
-                if (serverSocket?.isClosed == false) {
-                    serverSocket?.close()
-                    serverSocket = null
-                    logger.log(message)
-                }
-            } catch (e: Exception) {
-                logger.logError(e, "Device chanel shutdown error")
-            }
+        runWithCatchException { posChanelHandler.shutdown() }
+        try {
+            serverSocket?.close()
+            serverSocket = null
+            logger.log(TAG + message)
+            timeoutThread?.interrupt()
+        } catch (e: Exception) {
+            logger.logError(e, "$TAG shutdown error")
         }
     }
 
@@ -76,14 +72,7 @@ class DeviceChanelHandler(
         )
     }
 
-    private fun createSocket(): ServerSocket? {
-        return try {
-            shutdown("Device chanel shutdown")
-            serverSocket = ServerSocket(port, 0, InetAddress.getByName(getLocalIpAddress()))
-            serverSocket
-        } catch (e: Exception) {
-            logger.logError(e, "Create server socket error")
-            null
-        }
+    companion object{
+        private const val TAG = "[OPI] DEVICE CHANEL:"
     }
 }
