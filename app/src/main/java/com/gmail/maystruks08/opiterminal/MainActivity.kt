@@ -16,13 +16,13 @@ import java.math.BigDecimal
 import java.util.*
 
 
-private const val TERMINAL_IP = "192.168.0.125"
-private const val PORT_SEND = 20002
-private const val PORT_RECEIVE = 20007
+//private const val TERMINAL_IP = "192.168.0.126"
+//private const val PORT_SEND = 20002
+//private const val PORT_RECEIVE = 20007
 //
-//private const val TERMINAL_IP = "192.168.0.200"
-//private const val PORT_SEND = 5577
-//private const val PORT_RECEIVE = 5578
+private const val TERMINAL_IP = "192.168.0.200"
+private const val PORT_SEND = 5577
+private const val PORT_RECEIVE = 5578
 
 private const val SOCKET_CONNECT_TIMEOUT = 40000
 
