@@ -87,7 +87,9 @@ class MainActivity : AppCompatActivity() {
                     .lastReceiptNumber(5)
                     .build()
 
-                terminal.transaction(transactionData)
+                terminal.transaction(transactionData) { status ->
+                    Log.d("TERMINAL", "TERMINAL DEVICE MESSAGE: $status")
+                }
                 this.runOnUiThread {
                     Toast.makeText(this, "Transaction finished", Toast.LENGTH_LONG).show()
                 }
@@ -96,7 +98,7 @@ class MainActivity : AppCompatActivity() {
 
         btnCancelTransaction.setOnClickListener {
             Thread {
-                terminal.cancelOperation("0")
+                terminal.abortRequest("0")
                 this.runOnUiThread {
                     Toast.makeText(this, "Cancel transaction finished", Toast.LENGTH_LONG).show()
                 }

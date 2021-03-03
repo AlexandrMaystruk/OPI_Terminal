@@ -37,9 +37,13 @@ data class CardResponse(
     @field:Text(required = false)
     var cardHolderAuthentication: String? = null,
 
-    @field: Attribute(name = "TerminalID", required = true)
+    @field: Attribute(name = "TerminalID")
     @field:Path("Terminal")
     var terminalID: String = "",
+
+    @field: Attribute(name = "STAN", required = false)
+    @field:Path("Terminal")
+    var stan: String = "",
 
     @field: Text
     @field:Path("PrivateData/RebootInfo")
@@ -106,9 +110,13 @@ data class CardResponse(
     @field:Path("CardValue/Track2")
     var track2: String? = null,
 
-    ) : BaseXMLEntity() {
+    @field: Element(name = "OriginalHeader", required = false)
+    var originalHeader: OriginalHeader? = null
 
-    var receipt: String? = null
+) : BaseXMLEntity() {
+
+    var customerReceipt: String? = null
+    var merchantReceipt: String? = null
 
     constructor(xmlString: String) : this() {
         deserializeFromXMLString(xmlString)
@@ -126,6 +134,7 @@ data class CardResponse(
                 this.cardHolderAuthentication = it.cardHolderAuthentication
                 this.panHash = it.panHash
                 this.terminalID = it.terminalID
+                this.stan = it.stan
                 this.terminalLastRebootTime = it.terminalLastRebootTime
                 this.totalAmount = it.totalAmount
                 this.operationResult = it.operationResult
@@ -145,11 +154,30 @@ data class CardResponse(
                 this.actionCode = it.actionCode
                 this.returnCode = it.returnCode
                 this.track2 = it.track2
+                this.originalHeader = it.originalHeader
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
     }
-}
 
+    @Root(name = "OriginalHeader")
+    data class OriginalHeader(
+
+        @field: Attribute(name = "POPID", required = false)
+        var popid: String? = null,
+
+        @field: Attribute(name = "RequestID", required = false)
+        var requestID: String? = null,
+
+        @field: Attribute(name = "RequestType", required = false)
+        var requestType: String? = null,
+
+        @field: Attribute(name = "OverallResult", required = false)
+        var overallResult: String? = null,
+
+        @field: Attribute(name = "WorkstationID", required = false)
+        var workstationID: String? = null
+    )
+}
 

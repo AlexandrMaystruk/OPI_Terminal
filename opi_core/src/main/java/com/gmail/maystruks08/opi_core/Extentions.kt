@@ -53,3 +53,12 @@ fun runWithCatchException(block: () -> Unit) {
     } catch (e: Exception) { /*Not need handle exception*/
     }
 }
+
+inline fun <reified T> runOrElse(block: () -> T, elseBlock: () -> Unit): T? {
+    return try {
+        block()
+    } catch (e: Exception) {
+        elseBlock()
+        null
+    }
+}

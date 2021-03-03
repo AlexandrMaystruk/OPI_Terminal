@@ -23,7 +23,7 @@ data class ServiceResponse(
     @field:Attribute(name = "RequestID", required = true)
     var requestID: String? = null,
 
-    @field:Attribute(name = "OverallResult", required = true)
+    @field:Attribute(name = "OverallResult", required = false)
     var operationResult: OperationResult = OperationResult.Failure,
 
     @field:Element(name = "Terminal", required = false)
@@ -46,8 +46,8 @@ data class ServiceResponse(
 
 ) : BaseXMLEntity() {
 
-    var receipt: String? = null
-
+    var merchantReceipt: String? = null
+    var customerReceipt: String? = null
     var totalAmount: String? = null
 
     constructor(xmlString: String) : this() {

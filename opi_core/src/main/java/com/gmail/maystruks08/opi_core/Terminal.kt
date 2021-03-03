@@ -1,9 +1,8 @@
 package com.gmail.maystruks08.opi_core
 
-import com.gmail.maystruks08.opi_core.connector.DeviceChanelHandler
-import com.gmail.maystruks08.opi_core.connector.OPILogger
-import com.gmail.maystruks08.opi_core.connector.PosChanelHandler
+import com.gmail.maystruks08.opi_core.connector.*
 import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
+import com.gmail.maystruks08.opi_core.entity.OriginalTransactionData
 import com.gmail.maystruks08.opi_core.entity.Payment
 import com.gmail.maystruks08.opi_core.entity.RequestType
 import com.gmail.maystruks08.opi_core.entity.request.CardRequest
@@ -18,7 +17,7 @@ class Terminal(
     private val ipAddress: String,
     private val inputPort: Int,
     private val outputPort: Int,
-    private val timeout: Int = 30000,
+    private val timeout: Int = 60000,
     private val applicationSender: String?,
     private val workstationID: String?,
     private val opiLogger: OPILogger
@@ -28,7 +27,7 @@ class Terminal(
         private var ipAddress: String = "0.0.0.0"
         private var inputPort: Int = 0
         private var outputPort: Int = 0
-        private var timeout: Int = 30000
+        private var timeout: Int = 60000
         private var applicationSender: String = "Default"
         private var workstationID: String = "Default workstationID"
         private lateinit var opiLogger: OPILogger
@@ -61,7 +60,7 @@ class Terminal(
             applicationSender = applicationSender,
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
-        return callWithShutdown(serviceRequest)
+        return callWithShutdown(serviceRequest, 5000)
     }
 
     fun status(): ServiceResponse {
@@ -73,10 +72,10 @@ class Terminal(
             elmeTunnelCallback = true,
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
-        return callWithShutdown(serviceRequest)
+        return callWithShutdown(serviceRequest, 5000)
     }
 
-    fun transaction(paymentData: Payment): CardResponse {
+    fun transaction(paymentData: Payment, status: (String) -> Unit): CardResponse {
         val cardServiceRequest = CardRequest(
             requestID = paymentData.transactionId,
             workstationID = workstationID,
@@ -93,41 +92,47 @@ class Terminal(
                 paymentAmount = paymentData.total.toString()
             )
         )
-        return callTransactionWithShutdown(cardServiceRequest)
+        return callTransactionWithShutdown(cardServiceRequest) { status.invoke(it) }
     }
 
-    fun cancelTransaction(paymentData: Payment): CardRequest {
+    fun repeatLastMessage(requestId: Long, status: (String) -> Unit): CardResponse {
         val cardServiceRequest = CardRequest(
-            requestID = paymentData.transactionId,
+            requestID = requestId,
+            workstationID = workstationID,
+            requestType = RequestType.RepeatLastMessage.name,
+        )
+        return callTransactionWithShutdown(cardServiceRequest) { status.invoke(it) }
+    }
+
+    fun cancelPaymentTransaction(requestId: Long, originalTransaction: OriginalTransactionData, status: (String) -> Unit): CardResponse {
+        val cardServiceRequest = CardRequest(
+            referenceNumber = "1",
+            requestID = requestId,
             workstationID = workstationID,
             requestType = RequestType.PaymentReversal.name,
-            privateData = CardRequest.PrivateData(
-                lastReceiptNumber = paymentData.lastReceiptNumber.toString()
-            ),
-            posData = CardRequest.PosData(
-                posTimeStamp = Date().toServerUTCFormat(),
-                usePreselectedCard = false
-            ),
+            originalTransaction = originalTransaction.let {
+                CardRequest.OriginalTransaction(terminalID = it.terminalID, STAN = it.stan, timeStamp = it.timeStamp)
+            },
             totalAmount = CardRequest.TotalAmount(
-                currency = paymentData.currency,
-                paymentAmount = paymentData.total.toString()
+                currency = originalTransaction.currency,
+                paymentAmount = originalTransaction.total.toString()
             )
         )
-        return callTransactionWithShutdown(cardServiceRequest)
+        return callTransactionWithShutdown(cardServiceRequest) { status.invoke(it) }
     }
 
-    fun reconciliationWithClosure(): ServiceResponse {
+    fun reconciliationWithClosure(requestID: String, status: (String) -> Unit): ServiceResponse {
         val serviceRequest = ServiceRequest(
             requestType = RequestType.ReconciliationWithClosure.name,
             workstationID = workstationID,
-            requestID = "0",
+            requestID = requestID,
             applicationSender = applicationSender,
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
-        return callTransactionWithShutdown(serviceRequest)
+        return callTransactionWithShutdown(serviceRequest) { status.invoke(it) }
     }
 
-    fun cancelOperation(requestID: String): ServiceResponse {
+    fun abortRequest(requestID: String): ServiceResponse {
         val serviceRequest = ServiceRequest(
             requestType = RequestType.AbortRequest.name,
             workstationID = workstationID,
@@ -142,15 +147,15 @@ class Terminal(
         val serviceRequest = ServiceRequest(
             requestType = RequestType.Logoff.name,
             workstationID = workstationID,
-            requestID = "8",
+            requestID = "0",
             applicationSender = applicationSender,
             posData = ServiceRequest.PosData(posTimeStamp = Date())
         )
-        return callWithShutdown(serviceRequest)
+        return callWithShutdown(serviceRequest, 5000)
     }
 
-    private inline fun <reified Response : BaseXMLEntity> callWithShutdown(xmlEntity: BaseXMLEntity): Response {
-        val posChanelHandler = PosChanelHandler(ipAddress, inputPort, timeout, opiLogger)
+    private inline fun <reified Response : BaseXMLEntity> callWithShutdown(xmlEntity: BaseXMLEntity, customTimeout: Int? = null): Response {
+        val posChanelHandler = ClientHandler(ipAddress, inputPort, 500, customTimeout?: timeout, opiLogger)
         val request = xmlEntity.toXMLString()
         posChanelHandler.write(request)
 
@@ -164,17 +169,24 @@ class Terminal(
         }
     }
 
-    private inline fun <reified Response : BaseXMLEntity> callTransactionWithShutdown(xmlEntity: BaseXMLEntity): Response {
-        val posChanelHandler = PosChanelHandler(ipAddress, inputPort, timeout, opiLogger)
+    private inline fun <reified Response : BaseXMLEntity> callTransactionWithShutdown(xmlEntity: BaseXMLEntity, crossinline status: (String) -> Unit): Response {
+        val posChanelHandler = ClientHandler(ipAddress, inputPort, 500, timeout, opiLogger)
         val request = xmlEntity.toXMLString()
         posChanelHandler.write(request)
 
-        val deviceChanelHandler = DeviceChanelHandler(outputPort, timeout, opiLogger)
-        var deviceRequest: DeviceRequest? = null
+        val deviceChanelHandler = TerminalDeviceChanelHandler(outputPort, timeout, opiLogger)
+        var merchantInformation: DeviceRequest? = null
+        var userInformation: DeviceRequest? = null
         val asyncDeviceCommunication = asyncWithCatchException {
-            deviceChanelHandler.runServer { request ->
-                if (request.isPrinterRequest()) deviceRequest = request
-                if (request.isPrinterReceiptRequest()) deviceRequest = request
+            deviceChanelHandler.startServer { request ->
+                when {
+                    request.isPrinterRequest() -> merchantInformation = request
+                    request.isPrinterReceiptRequest() -> userInformation = request
+                    else -> {
+                        val stringBuilder = StringBuilder().apply { request.output?.textLines?.forEach { appendLine(it.text.orEmpty()) } }
+                        status.invoke(stringBuilder.toString())
+                    }
+                }
             }
         }
         val response = posChanelHandler.read().orEmpty()
@@ -185,12 +197,14 @@ class Terminal(
 
         return when (xmlEntity) {
             is CardRequest -> CardResponse(response).apply {
-                receipt = deviceRequest?.getReceiptString()
+                merchantReceipt = merchantInformation?.getReceiptString()
+                customerReceipt = userInformation?.getReceiptString()
             } as Response
             is DeviceRequest -> DeviceResponse(response) as Response
             is ServiceRequest -> ServiceResponse(response).apply {
-                receipt = deviceRequest?.getReceiptString()
-                totalAmount = deviceRequest?.getTotalAmount()
+                merchantReceipt = merchantInformation?.getReceiptString()
+                customerReceipt = userInformation?.getReceiptString()
+                totalAmount = userInformation?.getTotalAmount()
             } as Response
             else -> throw IllegalStateException("OPI: Not supported request type")
         }
