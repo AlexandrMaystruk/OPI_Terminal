@@ -100,6 +100,9 @@ data class DeviceRequest(
                     this.requestID = it.requestID
                     this.output = it.output
                     this.applicationSender = it.applicationSender
+                    this.sequenceID = it.sequenceID
+                    this.terminalID = it.terminalID
+                    this.popID = it.popID
                 }
         } catch (e: Exception) {
             e.printStackTrace()

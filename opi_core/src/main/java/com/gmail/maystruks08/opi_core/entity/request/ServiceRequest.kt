@@ -3,8 +3,11 @@ package com.gmail.maystruks08.opi_core.entity.request
 import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
 import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
-import org.simpleframework.xml.ElementList
 import org.simpleframework.xml.Root
+import org.simpleframework.xml.core.Persister
+import org.simpleframework.xml.stream.Format
+import java.io.Reader
+import java.io.StringReader
 import java.math.BigDecimal
 import java.util.*
 
@@ -39,6 +42,7 @@ data class ServiceRequest(
 
     @field:Element(name = "PrivateData", required = false)
     var privateData: PrivateData? = null
+
 ) : BaseXMLEntity() {
 
     @Root(name = "ClerkPermission")
@@ -90,25 +94,9 @@ data class ServiceRequest(
     @Root(name = "PrivateData")
     data class PrivateData(
 
-        @field:Element(name = "PrepaidCard", required = false)
-        private var prepaidCard: PrepaidCard? = null,
+        @field: Element(name = "SimpleText", required = false)
+        var value: String? = null
 
-        @field:ElementList(name = "Text", inline = true, required = false)
-        private var textFields: List<String>? = null
-
-    )
-
-    @Root(name = "PrepaidCard")
-    data class PrepaidCard(
-
-        @field:Element(name = "Paymode", required = false)
-        private var payModeField: String? = null,
-
-        @field:Element(name = "PaymodeSpecified", required = false)
-        private var payModeFieldSpecified: Boolean? = null,
-
-        @field:Element(name = "Value", required = false)
-        private var value: String? = null
     )
 
     @Root(name = "Currency")
@@ -119,7 +107,20 @@ data class ServiceRequest(
     enum class DiagnosisMethod { OnLine, Local, POPInit, POPInitAll, PrinterStatus }
 
     override fun deserializeFromXMLString(xmlString: String) {
-        TODO("Not yet implemented")
+        val reader: Reader = StringReader(xmlString)
+        val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
+        val serializer = Persister(format)
+        serializer.read(this::class.java, reader, false)?.also {
+            this.requestID = it.requestID
+            this.requestType = it.requestType
+            this.workstationID = it.workstationID
+            this.popID = it.popID
+            this.elmeTunnelCallback = it.elmeTunnelCallback
+            this.posData = it.posData
+            this.totalAmount = it.totalAmount
+            this.privateData = it.privateData
+            this.applicationSender = it.applicationSender
+        }
     }
 
 }

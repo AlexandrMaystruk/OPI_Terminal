@@ -1,10 +1,9 @@
 package com.gmail.maystruks08.opi_core
 
-import com.gmail.maystruks08.opi_core.connector.*
-import com.gmail.maystruks08.opi_core.entity.BaseXMLEntity
-import com.gmail.maystruks08.opi_core.entity.OriginalTransactionData
-import com.gmail.maystruks08.opi_core.entity.Payment
-import com.gmail.maystruks08.opi_core.entity.RequestType
+import com.gmail.maystruks08.opi_core.connector.ClientHandler
+import com.gmail.maystruks08.opi_core.connector.OPILogger
+import com.gmail.maystruks08.opi_core.connector.TerminalDeviceChanelHandler
+import com.gmail.maystruks08.opi_core.entity.*
 import com.gmail.maystruks08.opi_core.entity.request.CardRequest
 import com.gmail.maystruks08.opi_core.entity.request.DeviceRequest
 import com.gmail.maystruks08.opi_core.entity.request.ServiceRequest
@@ -14,20 +13,18 @@ import com.gmail.maystruks08.opi_core.entity.response.ServiceResponse
 import java.util.*
 
 class Terminal(
-    private val ipAddress: String,
-    private val inputPort: Int,
-    private val outputPort: Int,
-    private val timeout: Int = 60000,
-    private val applicationSender: String?,
-    private val workstationID: String?,
-    private val opiLogger: OPILogger
+    private val ipAddress: String, private val inputPort: Int,
+    private val outputPort: Int, private val connectTimeout: Int,
+    private val valueReadWriteTimeout: Int, private val applicationSender: String?,
+    private val workstationID: String?, private val opiLogger: OPILogger
 ) {
     class Builder {
 
         private var ipAddress: String = "0.0.0.0"
         private var inputPort: Int = 0
         private var outputPort: Int = 0
-        private var timeout: Int = 60000
+        private var connectTimeout: Int = 3000
+        private var valueReadWriteTimeout: Int = 120000
         private var applicationSender: String = "Default"
         private var workstationID: String = "Default workstationID"
         private lateinit var opiLogger: OPILogger
@@ -35,8 +32,11 @@ class Terminal(
         fun ipAddress(ip: String) = apply { this.ipAddress = ip }
         fun inputPort(port: Int) = apply { this.inputPort = port }
         fun outputPort(port: Int) = apply { this.outputPort = port }
-        fun timeout(timeout: Int) = apply { this.timeout = timeout }
-        fun applicationSender(applicationSender: String) = apply { this.applicationSender = applicationSender }
+        fun connectTimeout(timeout: Int) = apply { this.connectTimeout = timeout }
+        fun readWriteTimeout(timeout: Int) = apply { this.valueReadWriteTimeout = timeout }
+        fun applicationSender(applicationSender: String) =
+            apply { this.applicationSender = applicationSender }
+
         fun workstationID(id: String) = apply { this.workstationID = id }
         fun logger(opiLogger: OPILogger) = apply { this.opiLogger = opiLogger }
         fun build(): Terminal {
@@ -44,7 +44,8 @@ class Terminal(
                 ipAddress = ipAddress,
                 inputPort = inputPort,
                 outputPort = outputPort,
-                timeout = timeout,
+                connectTimeout = connectTimeout,
+                valueReadWriteTimeout = valueReadWriteTimeout,
                 applicationSender = applicationSender,
                 workstationID = workstationID,
                 opiLogger = opiLogger
@@ -65,14 +66,43 @@ class Terminal(
 
     fun status(): ServiceResponse {
         val serviceRequest = ServiceRequest(
+            requestType = RequestType.StatusQuery.name,
+            applicationSender = applicationSender,
+            workstationID = workstationID,
+            requestID = "0",
+            elmeTunnelCallback = false,
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
+        )
+        return callWithShutdown(serviceRequest, 5000)
+    }
+
+    fun initialisation(): ServiceResponse {
+        val serviceRequest = ServiceRequest(
+            requestType = RequestType.Administration.name,
+            applicationSender = applicationSender,
+            workstationID = workstationID,
+            requestID = "0",
+            elmeTunnelCallback = true,
+            privateData = ServiceRequest.PrivateData(value = "type=initialise"),
+            posData = ServiceRequest.PosData(posTimeStamp = Date())
+        )
+        return callWithShutdown(serviceRequest, 60 * 10000)
+    }
+
+    fun diagnostic(): ServiceResponse {
+        val serviceRequest = ServiceRequest(
             requestType = RequestType.Diagnosis.name,
             applicationSender = applicationSender,
             workstationID = workstationID,
             requestID = "0",
             elmeTunnelCallback = true,
-            posData = ServiceRequest.PosData(posTimeStamp = Date())
+            privateData = ServiceRequest.PrivateData(value = "subtype=config"),
+            posData = ServiceRequest.PosData(
+                posTimeStamp = Date(),
+                diagnosisMethod = ServiceRequest.DiagnosisMethod.OnLine
+            )
         )
-        return callWithShutdown(serviceRequest, 5000)
+        return callWithShutdown(serviceRequest, 60 * 10000)
     }
 
     fun transaction(paymentData: Payment, status: (String) -> Unit): CardResponse {
@@ -106,17 +136,20 @@ class Terminal(
 
     fun cancelPaymentTransaction(requestId: Long, originalTransaction: OriginalTransactionData, status: (String) -> Unit): CardResponse {
         val cardServiceRequest = CardRequest(
-            referenceNumber = "1",
             requestID = requestId,
             workstationID = workstationID,
             requestType = RequestType.PaymentReversal.name,
-            originalTransaction = originalTransaction.let {
-                CardRequest.OriginalTransaction(terminalID = it.terminalID, STAN = it.stan, timeStamp = it.timeStamp)
-            },
             totalAmount = CardRequest.TotalAmount(
-                currency = originalTransaction.currency,
-                paymentAmount = originalTransaction.total.toString()
-            )
+                paymentAmount = originalTransaction.total.toString(),
+                currency = originalTransaction.currency
+            ),
+            originalTransaction = originalTransaction.let {
+                CardRequest.OriginalTransaction(
+                    terminalID = it.terminalID,
+                    STAN = it.stan,
+                    timeStamp = it.timeStamp
+                )
+            },
         )
         return callTransactionWithShutdown(cardServiceRequest) { status.invoke(it) }
     }
@@ -155,12 +188,27 @@ class Terminal(
     }
 
     private inline fun <reified Response : BaseXMLEntity> callWithShutdown(xmlEntity: BaseXMLEntity, customTimeout: Int? = null): Response {
-        val posChanelHandler = ClientHandler(ipAddress, inputPort, 500, customTimeout?: timeout, opiLogger)
+        val posChanelHandler = ClientHandler(
+            ipAddress,
+            inputPort,
+            connectTimeout,
+            customTimeout ?: valueReadWriteTimeout,
+            opiLogger
+        )
         val request = xmlEntity.toXMLString()
         posChanelHandler.write(request)
 
-        val response = posChanelHandler.read().orEmpty()
+        val response = posChanelHandler.read()
         posChanelHandler.shutdown()
+
+        if (response.isNullOrEmpty()) {
+            return when (xmlEntity) {
+                is CardRequest -> CardResponse(OperationResult.Failure) as Response
+                is DeviceRequest -> DeviceResponse(OperationResult.Failure) as Response
+                is ServiceRequest -> ServiceResponse(OperationResult.Failure) as Response
+                else -> throw IllegalStateException("OPI: Not supported request type")
+            }
+        }
         return when (xmlEntity) {
             is CardRequest -> CardResponse(response) as Response
             is DeviceRequest -> DeviceResponse(response) as Response
@@ -170,11 +218,13 @@ class Terminal(
     }
 
     private inline fun <reified Response : BaseXMLEntity> callTransactionWithShutdown(xmlEntity: BaseXMLEntity, crossinline status: (String) -> Unit): Response {
-        val posChanelHandler = ClientHandler(ipAddress, inputPort, 500, timeout, opiLogger)
+        val posChanelHandler =
+            ClientHandler(ipAddress, inputPort, connectTimeout, valueReadWriteTimeout, opiLogger)
         val request = xmlEntity.toXMLString()
         posChanelHandler.write(request)
 
-        val deviceChanelHandler = TerminalDeviceChanelHandler(outputPort, timeout, opiLogger)
+        val deviceChanelHandler =
+            TerminalDeviceChanelHandler(outputPort, valueReadWriteTimeout, opiLogger)
         var merchantInformation: DeviceRequest? = null
         var userInformation: DeviceRequest? = null
         val asyncDeviceCommunication = asyncWithCatchException {
@@ -183,17 +233,30 @@ class Terminal(
                     request.isPrinterRequest() -> merchantInformation = request
                     request.isPrinterReceiptRequest() -> userInformation = request
                     else -> {
-                        val stringBuilder = StringBuilder().apply { request.output?.textLines?.forEach { appendLine(it.text.orEmpty()) } }
+                        val stringBuilder = StringBuilder().apply {
+                            request.output?.textLines?.forEach {
+                                appendLine(it.text.orEmpty())
+                            }
+                        }
                         status.invoke(stringBuilder.toString())
                     }
                 }
             }
         }
-        val response = posChanelHandler.read().orEmpty()
+        val response = posChanelHandler.read()
 
         deviceChanelHandler.shutdown("shutdown after receive overall result")
         asyncDeviceCommunication.interrupt()
         posChanelHandler.shutdown()
+
+        if (response.isNullOrEmpty()) {
+            return when (xmlEntity) {
+                is CardRequest -> CardResponse(OperationResult.Failure) as Response
+                is DeviceRequest -> DeviceResponse(OperationResult.Failure) as Response
+                is ServiceRequest -> ServiceResponse(OperationResult.Failure) as Response
+                else -> throw IllegalStateException("OPI: Not supported request type")
+            }
+        }
 
         return when (xmlEntity) {
             is CardRequest -> CardResponse(response).apply {

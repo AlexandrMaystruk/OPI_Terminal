@@ -122,42 +122,42 @@ data class CardResponse(
         deserializeFromXMLString(xmlString)
     }
 
+    constructor(operationResult: OperationResult): this(){
+        this.operationResult = operationResult
+    }
+
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
         val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
         val serializer = Persister(format)
-        try {
-            serializer.read(this::class.java, reader, false)?.also {
-                this.requestID = it.requestID
-                this.requestType = it.requestType
-                this.workstationID = it.workstationID
-                this.cardHolderAuthentication = it.cardHolderAuthentication
-                this.panHash = it.panHash
-                this.terminalID = it.terminalID
-                this.stan = it.stan
-                this.terminalLastRebootTime = it.terminalLastRebootTime
-                this.totalAmount = it.totalAmount
-                this.operationResult = it.operationResult
-                this.errorCode = it.errorCode
-                this.errorText = it.errorText
-                this.currency = it.currency
-                this.approvalCode = it.approvalCode
-                this.acquirerId = it.acquirerId
-                this.timestamp = it.timestamp
-                this.cardExpireDate = it.cardExpireDate
-                this.captureReference = it.captureReference
-                this.receiptNumber = it.receiptNumber
-                this.merchantId = it.merchantId
-                this.cardPAN = it.cardPAN
-                this.cardCircuit = it.cardCircuit
-                this.authorisationType = it.authorisationType
-                this.actionCode = it.actionCode
-                this.returnCode = it.returnCode
-                this.track2 = it.track2
-                this.originalHeader = it.originalHeader
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        serializer.read(this::class.java, reader, false)?.also {
+            this.requestID = it.requestID
+            this.requestType = it.requestType
+            this.workstationID = it.workstationID
+            this.cardHolderAuthentication = it.cardHolderAuthentication
+            this.panHash = it.panHash
+            this.terminalID = it.terminalID
+            this.stan = it.stan
+            this.terminalLastRebootTime = it.terminalLastRebootTime
+            this.totalAmount = it.totalAmount
+            this.operationResult = it.operationResult
+            this.errorCode = it.errorCode
+            this.errorText = it.errorText
+            this.currency = it.currency
+            this.approvalCode = it.approvalCode
+            this.acquirerId = it.acquirerId
+            this.timestamp = it.timestamp
+            this.cardExpireDate = it.cardExpireDate
+            this.captureReference = it.captureReference
+            this.receiptNumber = it.receiptNumber
+            this.merchantId = it.merchantId
+            this.cardPAN = it.cardPAN
+            this.cardCircuit = it.cardCircuit
+            this.authorisationType = it.authorisationType
+            this.actionCode = it.actionCode
+            this.returnCode = it.returnCode
+            this.track2 = it.track2
+            this.originalHeader = it.originalHeader
         }
     }
 

@@ -29,6 +29,12 @@ data class ServiceResponse(
     @field:Element(name = "Terminal", required = false)
     var terminal: Terminal? = null,
 
+    @field:Attribute(name = "TerminalState", required = false)
+    var terminalState: String? = null,
+
+    @field:Attribute(name = "CardReadingState", required = false)
+    var cardReadingState: String? = null,
+
     @field:Element(name = "Authorisation", required = false)
     var authorisation: Authorisation? = null,
 
@@ -54,27 +60,28 @@ data class ServiceResponse(
         deserializeFromXMLString(xmlString)
     }
 
+    constructor(operationResult: OperationResult) : this() {
+        this.operationResult = operationResult
+    }
+
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
         val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
         val serializer = Persister(format)
-        try {
-            serializer.read(this::class.java, reader, false)
-                ?.also {
-                    this.requestType = it.requestType
-                    this.applicationSender = it.applicationSender
-                    this.workstationID = it.workstationID
-                    this.requestID = it.requestID
-                    this.operationResult = it.operationResult
-                    this.terminal = it.terminal
-                    this.authorisation = it.authorisation
-                    this.reconciliation = it.reconciliation
-                    this.diagnosisResult = it.diagnosisResult
-                    this.originalHeader = it.originalHeader
-                    this.privateData = it.privateData
-                }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        serializer.read(this::class.java, reader, false)?.also {
+            this.requestType = it.requestType
+            this.applicationSender = it.applicationSender
+            this.workstationID = it.workstationID
+            this.requestID = it.requestID
+            this.operationResult = it.operationResult
+            this.terminal = it.terminal
+            this.terminalState = it.terminalState
+            this.cardReadingState = it.cardReadingState
+            this.authorisation = it.authorisation
+            this.reconciliation = it.reconciliation
+            this.diagnosisResult = it.diagnosisResult
+            this.originalHeader = it.originalHeader
+            this.privateData = it.privateData
         }
     }
 

@@ -28,8 +28,11 @@ data class DeviceResponse(
     @field: Attribute(name = "xmlns:xsi", required = true)
     var xsi: String = "http://www.w3.org/2001/XMLSchema-instance",
 
-    @field: Element(name = "Output")
-    var output: Output = Output("", ""),
+    @field: Element(name = "Output", required = false)
+    var output: Output? = null,
+
+    @field: Element(name = "Input", required = false)
+    var input: Input? = null,
 
     @field: Element(name = "EventResult", required = false)
     var eventResult: EventResult? = null,
@@ -39,9 +42,6 @@ data class DeviceResponse(
 
     @field: Attribute(name = "TerminalID", required = false)
     var terminalID: String? = null,
-
-    @field: Element(name = "Input", required = false)
-    var POPID: String? = null,
 
     @field: Attribute(name = "RequestID", required = false)
     var requestID: String? = null,
@@ -58,27 +58,26 @@ data class DeviceResponse(
         deserializeFromXMLString(xmlString)
     }
 
+    constructor(operationResult: OperationResult) : this() {
+        this.result = operationResult
+    }
+
     override fun deserializeFromXMLString(xmlString: String) {
         val reader: Reader = StringReader(xmlString)
         val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
         val serializer = Persister(format)
-        try {
-            serializer.read(this::class.java, reader, false)
-                ?.also {
-                    this.output = it.output
-                    this.eventResult = it.eventResult
-                    this.requestType = it.requestType
-                    this.applicationSender = it.applicationSender
-                    this.workstationID = it.workstationID
-                    this.terminalID = it.terminalID
-                    this.POPID = it.POPID
-                    this.requestID = it.requestID
-                    this.sequenceID = it.sequenceID
-                    this.referenceRequestID = it.referenceRequestID
-                    this.result = it.result
-                }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        serializer.read(this::class.java, reader, false)?.also {
+            this.output = it.output
+            this.input = it.input
+            this.eventResult = it.eventResult
+            this.requestType = it.requestType
+            this.applicationSender = it.applicationSender
+            this.workstationID = it.workstationID
+            this.terminalID = it.terminalID
+            this.requestID = it.requestID
+            this.sequenceID = it.sequenceID
+            this.referenceRequestID = it.referenceRequestID
+            this.result = it.result
         }
     }
 
@@ -91,6 +90,27 @@ data class DeviceResponse(
         @field: Attribute(name = "OutResult")
         var outResult: String
     )
+
+    @Root(name = "InputValue")
+    data class InputValue(
+
+        @field: Element(name = "InBoolean")
+        val inBoolean: Boolean
+    )
+
+    @Root(name = "Input")
+    data class Input(
+
+        @field: Element(name = "InputValue")
+        var inputValue: InputValue? = null,
+
+        @field: Attribute(name = "InDeviceTarget")
+        var inDeviceTarget: String,
+
+        @field: Attribute(name = "InResult")
+        var inResult: String,
+    )
+
 
     @Root(name = "EventResult")
     data class EventResult(

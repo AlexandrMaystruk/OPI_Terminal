@@ -7,13 +7,14 @@
     tools:context=".MainActivity">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintBottom_toTopOf="@+id/btnCancelTransaction"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintVertical_bias="0.0"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
         <TextView
             android:id="@+id/textView"
@@ -26,60 +27,82 @@
     </ScrollView>
 
 
-
     <Button
         android:id="@+id/btnLogin"
-        android:layout_width="0dp"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="30dp"
         android:text="Login"
-        app:layout_constraintBottom_toBottomOf="@+id/btnStatus"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnStatus"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/btnStatus" />
+        app:layout_constraintStart_toStartOf="parent" />
+
+
+    <Button
+        android:id="@+id/btnInit"
+        android:layout_width="125dp"
+        android:layout_height="wrap_content"
+        android:text="Init"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnDiagnostic"
+        app:layout_constraintStart_toEndOf="@+id/btnStatus" />
 
 
     <Button
         android:id="@+id/btnStatus"
-        android:layout_width="0dp"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
         android:text="Status"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnInit"
+        app:layout_constraintStart_toEndOf="@+id/btnLogin" />
+
+    <Button
+        android:id="@+id/btnDiagnostic"
+        android:layout_width="85dp"
+        android:layout_height="wrap_content"
+        android:text="Diagnostic"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnTransaction"
-        app:layout_constraintStart_toEndOf="@+id/btnLogin"
-        />
+        app:layout_constraintStart_toEndOf="@+id/btnInit"
+        tools:layout_editor_absoluteY="336dp" />
 
     <Button
         android:id="@+id/btnTransaction"
-        android:layout_width="0dp"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
         android:text="Transaction"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnCancelTransaction"
-        app:layout_constraintStart_toEndOf="@+id/btnStatus"
-       />
+        app:layout_constraintStart_toEndOf="@+id/btnDiagnostic" />
 
     <Button
         android:id="@+id/btnCancelTransaction"
-        android:layout_width="0dp"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
-        android:layout_margin="20dp"
         android:text="Cancel Transaction"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnDisconnect"
+
         app:layout_constraintStart_toEndOf="@+id/btnTransaction" />
 
     <Button
         android:id="@+id/btnDisconnect"
-        android:layout_width="0dp"
+        android:layout_width="85dp"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="30dp"
         android:text="LogOut"
-        app:layout_constraintBottom_toBottomOf="@+id/btnCancelTransaction"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnCloseDay"
+        app:layout_constraintStart_toEndOf="@+id/btnCancelTransaction" />
+
+
+    <Button
+        android:id="@+id/btnCloseDay"
+        android:layout_width="85dp"
+        android:layout_height="wrap_content"
+        android:text="Close"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnCancelTransaction"
- />
+        app:layout_constraintStart_toEndOf="@+id/btnDisconnect" />
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

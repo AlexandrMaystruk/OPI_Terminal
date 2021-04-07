@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Message
 import android.util.Log
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.gmail.maystruks08.opi_core.Terminal
@@ -16,15 +17,16 @@ import java.math.BigDecimal
 import java.util.*
 
 
-//private const val TERMINAL_IP = "192.168.0.126"
-//private const val PORT_SEND = 20002
-//private const val PORT_RECEIVE = 20007
-//
-private const val TERMINAL_IP = "192.168.0.200"
-private const val PORT_SEND = 5577
-private const val PORT_RECEIVE = 5578
+private const val TERMINAL_IP = "192.168.0.125"
+private const val PORT_SEND = 20002
+private const val PORT_RECEIVE = 20007
 
-private const val SOCKET_CONNECT_TIMEOUT = 40000
+//private const val TERMINAL_IP = "192.168.0.200"
+//private const val PORT_SEND = 5577
+//private const val PORT_RECEIVE = 5578
+
+private const val SOCKET_CONNECT_TIMEOUT = 3000
+private const val SOCKET_READ_WRITE_TIMEOUT = 60 * 1000 * 2
 
 private const val WORK_STATION_ID = "Elo C1242435235"
 private const val APPLICATION_SENDER = "CashRegister"
@@ -43,14 +45,17 @@ class MainActivity : AppCompatActivity() {
         val handler = Handler {
             val messageData = it.data.getString("0") ?: ""
             textView.text = textView.text.toString() + "\n" + "\n" + messageData
+            scrollView.fullScroll(View.FOCUS_DOWN)
             return@Handler true
         }
 
         val terminal = Terminal.Builder()
+            .applicationSender("SmartCheckout")
+            .connectTimeout(SOCKET_CONNECT_TIMEOUT)
+            .readWriteTimeout(SOCKET_READ_WRITE_TIMEOUT)
             .ipAddress(TERMINAL_IP)
             .inputPort(PORT_SEND)
             .outputPort(PORT_RECEIVE)
-            .timeout(SOCKET_CONNECT_TIMEOUT)
             .applicationSender(APPLICATION_SENDER)
             .workstationID(WORK_STATION_ID)
             .logger(OPILoggerImpl(handler))
@@ -65,6 +70,15 @@ class MainActivity : AppCompatActivity() {
             }.start()
         }
 
+        btnInit.setOnClickListener {
+            Thread {
+                terminal.initialisation()
+                this.runOnUiThread {
+                    Toast.makeText(this, "Initialisation finished", Toast.LENGTH_LONG).show()
+                }
+            }.start()
+        }
+
         btnStatus.setOnClickListener {
             Thread {
                 terminal.status()
@@ -74,10 +88,17 @@ class MainActivity : AppCompatActivity() {
             }.start()
         }
 
+        btnDiagnostic.setOnClickListener {
+            Thread {
+                terminal.diagnostic()
+                this.runOnUiThread {
+                    Toast.makeText(this, "Diagnostic finished", Toast.LENGTH_LONG).show()
+                }
+            }.start()
+        }
+
         btnTransaction.setOnClickListener {
-
             lastTransactionId = Random().nextLong()
-
             Thread {
                 val transactionData = Payment.Builder()
                     .total(BigDecimal("5.00"))
@@ -101,6 +122,17 @@ class MainActivity : AppCompatActivity() {
                 terminal.abortRequest("0")
                 this.runOnUiThread {
                     Toast.makeText(this, "Cancel transaction finished", Toast.LENGTH_LONG).show()
+                }
+            }.start()
+        }
+
+        btnCloseDay.setOnClickListener {
+            Thread {
+                terminal.reconciliationWithClosure("0"){ status ->
+                    Log.d("TERMINAL", "TERMINAL DEVICE MESSAGE: $status")
+                }
+                this.runOnUiThread {
+                    Toast.makeText(this, "Reconciliation with closure finished", Toast.LENGTH_LONG).show()
                 }
             }.start()
         }

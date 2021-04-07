@@ -5,6 +5,10 @@ import org.simpleframework.xml.Attribute
 import org.simpleframework.xml.Element
 import org.simpleframework.xml.Namespace
 import org.simpleframework.xml.Root
+import org.simpleframework.xml.core.Persister
+import org.simpleframework.xml.stream.Format
+import java.io.Reader
+import java.io.StringReader
 
 
 @Root(name = "CardServiceRequest")
@@ -113,8 +117,22 @@ data class CardRequest(
     )
 
     override fun deserializeFromXMLString(xmlString: String) {
-        TODO("Not yet implemented")
+        val reader: Reader = StringReader(xmlString)
+        val format = Format("<?xml version=\"1.0\" encoding= \"ISO-8859-1\" ?>")
+        val serializer = Persister(format)
+        serializer.read(this::class.java, reader, false)?.also {
+            this.requestID = it.requestID
+            this.requestType = it.requestType
+            this.workstationID = it.workstationID
+            this.totalAmount = it.totalAmount
+            this.tunnelCallback = it.tunnelCallback
+            this.posData = it.posData
+            this.privateData = it.privateData
+            this.originalTransaction = it.originalTransaction
+            this.applicationSender = it.applicationSender
+            this.popID = it.popID
+            this.referenceNumber = it.referenceNumber
+        }
     }
-
 }
 
